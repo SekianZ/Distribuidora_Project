@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed top-0 left-0 z-[1000] h-screen flex flex-col text-white transition-all duration-300 ease-in-out shadow-[0_0_15px_rgba(0,0,0,0.1)] bg-gradient-to-b from-[#1a3f6e] to-[#1e497a] w-[220px]">
+        <!-- Toggle button -->
+        <div class="toggle-btn absolute right-[-12px] top-1/2 -translate-y-1/2 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow-[0_2px_5px_rgba(0,0,0,0.2)] cursor-pointer z-[1001] text-[#1a3f6e]" id="toggle-sidebar">
+            <i class="fas fa-chevron-left text-xs"></i>
+        </div>
+        
+        <!-- Logo -->
+        <div class="flex justify-center py-6 px-4">
+            <div class="flex items-center">
+                <img src="../Estilos/icons/work.svg" alt="Logo" class="w-8 h-8">
+                <span class="ml-3 font-bold text-lg whitespace-nowrap">DISTRIBUIDORA</span>
+            </div>
+        </div>
+        
+        <!-- Main menu -->
+        <nav class="flex-1 px-3 space-y-1">
+            <a href="inicio.html" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/home2.svg" alt="Inicio" class="w-5">
+                <span class="ml-3 whitespace-nowrap">INICIO</span>
+            </a>
+            <a href="Compras.html" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/sell.svg" alt="Compras" class="w-5">
+                <span class="ml-3 whitespace-nowrap">COMPRA</span>
+            </a>
+            <a href="Ventas.html" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/moneyB.svg" alt="Ventas" class="w-5">
+                <span class="ml-3 whitespace-nowrap">VENTA</span>
+            </a>
+            <a href="clientes.html" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/user.svg" alt="Clientes" class="w-5">
+                <span class="ml-3 whitespace-nowrap">CLIENTES</span>
+            </a>
+            <a href="proovedor.html" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/user.svg" alt="Proveedores" class="w-5">
+                <span class="ml-3 whitespace-nowrap">PROVEEDORES</span>
+            </a>
+        </nav>
+        
+        <!-- Bottom menu -->
+        <div class="px-3 pb-6">
+            <a onclick="cerrarSesion()" class="nav-item flex items-center py-3 px-4 rounded-md transition-all duration-200 ease-in-out hover:bg-white/15">
+                <img src="../Estilos/icons/exit.svg" alt="Salir" class="w-5">
+                <span class="ml-3 whitespace-nowrap">SALIR</span>
+            </a>
+        </div>
+    </div>
+
+    
+</body>
+</html>

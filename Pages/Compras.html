@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuidora - Compras</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/tarjetas.js"></script>
+    <link  rel="stylesheet" href="../Estilos/tarjetas.css">
+    <style>
+        #main-content {
+            margin-left: 0;
+        }
+
+        @media (min-width: 768px) {
+            #main-content {
+                margin-left: 16rem; 
+            }
+            #main-content.sidebar-collapsed {
+                margin-left: 5rem; 
+            }
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-modal { animation: modalFadeIn 0.3s ease; }
+        .observaciones-modal {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .option-card {
+            transition: all 0.3s ease;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        .menu-item-active {
+            border-left: 4px solid #60a5fa;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .table-row-hover:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex overflow-hidden h-screen font-roboto">
+    <!-- Sidebar -->
+    <div w3-include-html="/Pages/pieces-views/sidebar.html"></div>
+    <!-- Contenido principal -->
+    <div id="main-content" class="flex-1 overflow-auto transition-all duration-300">
+        <!-- Botón para minimizar/expandir -->
+
+
+        <!-- Contenedor principal -->
+        <div class="container mx-auto p-6">
+            <!-- Encabezado -->
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <button id="btn-regresar" class="mr-4 text-gray-600 hover:text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </button>
+                    <h1 class="text-3xl font-bold text-gray-800">Registro de Compras</h1>
+                </div>
+            </div>
+
+            <!-- Barra de acciones y búsqueda -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <button id="btn-agregar-compra" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-md hover:shadow-lg">
+                    <i class="mr-2">+</i> Nueva Compra
+                </button>
+                
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="buscador-compras" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" placeholder="Buscar compras...">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stock-metrics">
+                <div class="metric-card">
+                    <div class="metric-title">Stock Cerveza Paceña</div>
+                    <div class="metric-value" id="stock-paceña">100</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Stock Cerveza Huari</div>
+                    <div class="metric-value" id="stock-huari">57</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Stock Balones de Gas</div>
+                    <div class="metric-value" id="stock-gas">35</div>
+                </div>
+
+            </div>
+
+            <!-- Tabla de compras -->
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Proveedor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Unit.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-compras-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Las compras se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal para agregar/editar compra -->
+            <div id="modal-compra" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl animate-modal">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h3 class="text-xl font-semibold text-gray-800" id="titulo-modal-compra">Registrar Nueva Compra</h3>
+                        <button id="cerrar-modal" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="form-compra" class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Proveedor -->
+                            <div>
+                                <label for="proveedor" class="block text-sm font-medium text-gray-700 mb-1">Proveedor</label>
+                                <select id="proveedor" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="">Seleccionar</option>
+                                    <option value="proveedor1">Proveedor 1</option>
+                                    <option value="proveedor2">Proveedor 2</option>
+                                    <option value="proveedor3">Proveedor 3</option>
+                                </select>
+                            </div>
+
+                            <!-- Producto (actualizado dinámicamente) -->
+                            <div>
+                                <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                                <select id="producto" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="">Selecciona un proveedor primero</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                                <input type="number" id="cantidad" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                            </div>
+                            
+                            <div>
+                                <label for="precio" class="block text-sm font-medium text-gray-700 mb-1">Precio (S/)</label>
+                                <input type="number" step="0.01" id="precio" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                            </div>
+                            
+                            <div>
+                                <!--<label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label> -->
+                                <input type="date" id="fecha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" hidden>
+                            </div>
+                            
+                            <div>
+                                <label for="pago" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pago</label>
+                                <select id="pago" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="1">Efectivo</option>
+                                    <option value="2">Tarjeta</option>
+                                    <option value="3">Transferencia</option>
+                                </select>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                                <textarea id="observaciones" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total a Pagar (S/)</label>
+                                <div id="total-pagar" class="text-2xl font-bold text-green-600">0.00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end gap-4 mt-8">
+                            <button type="button" id="cancelar-compra" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors duration-200 shadow-sm">
+                                Cancelar
+                            </button>
+                            <button type="button" id="btnRCompra" onclick="registrarCompra()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                                Registrar Compra
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para ver observaciones -->
+            <div id="modal-observaciones" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md animate-modal observaciones-modal">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Observaciones de la Compra</h3>
+                        <button id="cerrar-modal-observaciones" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div id="texto-observaciones" class="text-gray-700 whitespace-pre-line"></div>
+                    </div>
+                    
+                    <div class="flex justify-end px-6 py-4 border-t">
+                        <button id="cerrar-observaciones" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/compras.js"></script>
+    <script>includeHTML();</script>
+</body>
+</html>

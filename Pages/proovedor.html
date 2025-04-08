@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Proveedores - Sistema de Gestión de Inventario</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/proovedor.js"></script>
+    <style>
+        #main-content {
+            margin-left: 0;
+        }
+
+        @media (min-width: 768px) {
+            #main-content {
+                margin-left: 16rem;
+            }
+
+            #main-content.sidebar-collapsed {
+                margin-left: 5rem;
+            }
+        }
+
+        /* Animación para modales */
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Estilos para la tabla */
+        .table-container {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-header {
+            background-color: #f8fafc;
+        }
+
+        .table-row:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Estilos para los botones */
+        .btn-primary {
+            background-color: #1a4a80;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #12345a;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background-color: #10b981;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: #ef4444;
+            transition: all 0.3s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        /* Estilos para los inputs */
+        .input-field:focus {
+            box-shadow: 0 0 0 3px rgba(26, 74, 128, 0.2);
+        }
+
+        /* Estilos para los badges de estado */
+        .badge-active {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-inactive {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Efecto de transición suave */
+        .transition-smooth {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 flex overflow-hidden h-screen font-roboto">
+    <!-- Sidebar -->
+    <div w3-include-html="/Pages/pieces-views/sidebar.html"></div>
+
+    <!-- Contenido principal -->
+    <div id="main-content" class="flex-1 overflow-auto transition-all duration-300">
+        <!-- Contenedor principal -->
+        <div class="container mx-auto p-6 w-full">
+            <!-- Encabezado -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div class="flex items-center">
+                    <h1 class="text-3xl font-bold text-gray-800">Registro de Proveedores</h1>
+                </div>
+                <button onclick="window.location.href='inicio.html'"
+                    class="flex items-center text-gray-600 hover:text-gray-900 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+                </button>
+            </div>
+            <!-- Tarjeta principal -->
+            <div class="bg-white rounded-xl shadow-sm p-6 transition-smooth">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
+                    <div class="relative flex-1 max-w-md">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" id="searchInput"
+                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                            placeholder="Buscar proveedor...">
+                    </div>
+                    <button class="btn-success text-white px-6 py-2 whitespace-nowrap rounded-lg flex items-center"
+                        onclick="openModal('nuevoProveedorModal')">
+                        <i class="fas fa-plus-circle mr-2"></i> Nuevo Proveedor
+                    </button>
+                </div>
+
+                <!-- Filtros -->
+                <div class="border border-gray-200 rounded-lg mb-6 overflow-hidden transition-all duration-300">
+                    <div class="flex justify-between items-center bg-gray-100 px-4 py-3 cursor-pointer"
+                        onclick="toggleFilters()">
+                        <span class="font-medium flex items-center">
+                            <i class="fas fa-filter mr-2 text-[#1a4a80]"></i> Filtros
+                        </span>
+                        <span class="text-[#1a4a80] text-sm flex items-center" id="filterToggleText">
+                            <i class="fas fa-chevron-down mr-1 text-xs"></i> Mostrar
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-4 border-t-0 border border-gray-200 hidden" id="filterControls">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                    <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría
+                                </label>
+                                <select id="filterCategoria"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    <option value="">Todas las categorías</option>
+                                    <option value="Cerveza">Cerveza</option>
+                                    <option value="Gas">Balón de Gas</option>
+                                    <option value="Bebida">Bebida</option>
+                                    <option value="Alimento">Alimento</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                    <i class="fas fa-info-circle mr-2 text-gray-500"></i>Estado
+                                </label>
+                                <select id="filterEstado"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    <option value="">Todos los estados</option>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                    <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad
+                                </label>
+                                <select id="filterCiudad"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    <option value="">Todas las ciudades</option>
+                                    <option value="La Paz">La Paz</option>
+                                    <option value="Cochabamba">Cochabamba</option>
+                                    <option value="Santa Cruz">Santa Cruz</option>
+                                    <option value="Oruro">Oruro</option>
+                                    <option value="Potosi">Potosi</option>
+                                    <option value="Tarija">Tarija</option>
+                                    <option value="Beni">Beni</option>
+                                    <option value="Pando">Pando</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-4 gap-2">
+                            <button id="clearFiltersBtn"
+                                class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-broom mr-2"></i>Limpiar
+                            </button>
+                            <button id="applyFiltersBtn"
+                                class="btn-primary text-white px-4 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-check mr-2"></i>Aplicar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabla de proveedores -->
+                <div class="overflow-x-auto rounded-lg table-container">
+                    <table class="w-full min-w-full divide-y divide-gray-200">
+                        <thead class="table-header">
+                            <tr>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-building mr-1"></i> Nombre
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-tag mr-1"></i> Categoría
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-id-card mr-1"></i> RUC
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-user mr-1"></i> Contacto
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-map-marker-alt mr-1"></i> Correo
+                                </th>
+                                <th
+                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <i class="fas fa-cog mr-1"></i> Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="proveedoresTableBody">
+                            <!-- Los datos se cargarán dinámicamente aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="flex flex-col md:flex-row justify-between items-center mt-6 gap-4" id="pagination">
+                    <!-- La paginación se generará dinámicamente aquí -->
+                </div>
+            </div>
+
+            <!-- Modal para Nuevo Proveedor -->
+            <div id="nuevoProveedorModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
+                <div
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-truck mr-2 text-[#1a4a80]"></i> Registrar Nuevo Proveedor
+                        </h2>
+                        <button onclick="closeModal('nuevoProveedorModal')"
+                            class="text-gray-500 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="nuevoProveedorForm" onsubmit="event.preventDefault(); guardarNuevoProveedor();">
+                        <div class="px-6 py-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-building mr-2 text-gray-500"></i>Nombre del Proveedor *
+                                    </label>
+                                    <input type="text" id="nombreProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="Nombre completo" required>
+                                    <div id="errorNombre" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-gray-500"></i>RUC / Documento *
+                                    </label>
+                                    <input type="text" id="rucProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="RUC o documento fiscal" required>
+                                    <div id="errorRuc" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-phone mr-2 text-gray-500"></i>Teléfono Principal *
+                                    </label>
+                                    <input type="text" id="telefonoProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="Número de teléfono" required>
+                                    <div id="errorTelefono" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-envelope mr-2 text-gray-500"></i>Correo Electrónico
+                                    </label>
+                                    <input type="email" id="emailProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="Correo electrónico">
+                                    <div id="errorEmail" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-map-marked-alt mr-2 text-gray-500"></i>Dirección *
+                                    </label>
+                                    <input type="text" id="direccionProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="Dirección completa" required>
+                                    <div id="errorDireccion" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad *
+                                    </label>
+                                    <select id="ciudadProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                        <option value="">Seleccionar ciudad</option>
+                                        <option value="La Paz">La Paz</option>
+                                        <option value="Cochabamba">Cochabamba</option>
+                                        <option value="Santa Cruz">Santa Cruz</option>
+                                        <option value="Oruro">Oruro</option>
+                                        <option value="Potosi">Potosi</option>
+                                        <option value="Tarija">Tarija</option>
+                                        <option value="Beni">Beni</option>
+                                        <option value="Pando">Pando</option>
+                                    </select>
+                                    <div id="errorCiudad" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría *
+                                    </label>
+                                    <select id="categoriaProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                        <option value="">Seleccionar categoría</option>
+                                        <option value="Cerveza">Cerveza</option>
+                                        <option value="Gas">Balón de Gas</option>
+                                        <option value="Bebida">Bebida</option>
+                                        <option value="Alimento">Alimento</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                    <div id="errorCategoria" class="text-red-500 text-sm mt-1"></div>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-user-tie mr-2 text-gray-500"></i>Persona de Contacto
+                                    </label>
+                                    <input type="text" id="contactoProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        placeholder="Nombre del contacto">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-sticky-note mr-2 text-gray-500"></i>Observaciones
+                                    </label>
+                                    <textarea id="observacionesProveedor"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        rows="3" placeholder="Notas adicionales sobre el proveedor"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 px-6 py-4 border-t">
+                            <button type="button" onclick="closeModal('nuevoProveedorModal')"
+                                class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-times mr-2"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-save mr-2"></i> Guardar Proveedor
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Proveedor -->
+            <div id="editProveedorModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
+                <div
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-edit mr-2 text-[#1a4a80]"></i> Editar Proveedor
+                        </h2>
+                        <button onclick="closeModal('editProveedorModal')"
+                            class="text-gray-500 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <form id="editProveedorForm" onsubmit="event.preventDefault(); guardarEdicionProveedor();">
+                        <input type="hidden" id="editId">
+                        <div class="px-6 py-4">
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-building mr-2 text-gray-500"></i>Nombre del Proveedor *
+                                    </label>
+                                    <input type="text" id="editNombre"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría *
+                                    </label>
+                                    <select id="editCategoria"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                        <option value="Cerveza">Cerveza</option>
+                                        <option value="Gas">Balón de Gas</option>
+                                        <option value="Bebida">Bebida</option>
+                                        <option value="Alimento">Alimento</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-id-card mr-2 text-gray-500"></i>RUC *
+                                    </label>
+                                    <input type="text" id="editRuc"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-phone mr-2 text-gray-500"></i>Teléfono *
+                                    </label>
+                                    <input type="text" id="editTelefono"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-envelope mr-2 text-gray-500"></i>Email
+                                    </label>
+                                    <input type="email" id="editEmail"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-map-marked-alt mr-2 text-gray-500"></i>Dirección *
+                                    </label>
+                                    <input type="text" id="editDireccion"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad *
+                                    </label>
+                                    <select id="editCiudad"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                        <option value="La Paz">La Paz</option>
+                                        <option value="Cochabamba">Cochabamba</option>
+                                        <option value="Santa Cruz">Santa Cruz</option>
+                                        <option value="Oruro">Oruro</option>
+                                        <option value="Potosi">Potosi</option>
+                                        <option value="Tarija">Tarija</option>
+                                        <option value="Beni">Beni</option>
+                                        <option value="Pando">Pando</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-user-tie mr-2 text-gray-500"></i>Persona de Contacto
+                                    </label>
+                                    <input type="text" id="editContacto"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-info-circle mr-2 text-gray-500"></i>Estado *
+                                    </label>
+                                    <select id="editEstado"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        required>
+                                        <option value="Activo">Activo</option>
+                                        <option value="Inactivo">Inactivo</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
+                                        <i class="fas fa-sticky-note mr-2 text-gray-500"></i>Observaciones
+                                    </label>
+                                    <textarea id="editObservaciones"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-2 px-6 py-4 border-t">
+                            <button type="button" onclick="closeModal('editProveedorModal')"
+                                class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-times mr-2"></i> Cancelar
+                            </button>
+                            <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                                <i class="fas fa-save mr-2"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Detalles del Proveedor -->
+            <div id="detailsProveedorModal"
+                class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
+                <div
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h2 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-[#1a4a80]"></i> Detalles del Proveedor
+                        </h2>
+                        <button onclick="closeModal('detailsProveedorModal')"
+                            class="text-gray-500 hover:text-gray-700 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-medium text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-id-card mr-2 text-gray-500"></i> Información Básica
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Nombre</label>
+                                        <p id="detailsNombre" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Categoría</label>
+                                        <p id="detailsCategoria" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">RUC</label>
+                                        <p id="detailsRuc" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Estado</label>
+                                        <p id="detailsEstado" class="mt-1">
+                                            <span class="inline-block px-2 py-1 rounded-full text-xs font-medium"
+                                                id="estadoBadge"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-medium text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-address-book mr-2 text-gray-500"></i> Información de Contacto
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Contacto</label>
+                                        <p id="detailsContacto" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Teléfono</label>
+                                        <p id="detailsTelefono" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Email</label>
+                                        <p id="detailsEmail" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-medium text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2 text-gray-500"></i> Ubicación
+                                </h3>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Dirección</label>
+                                        <p id="detailsDireccion" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-500">Ciudad</label>
+                                        <p id="detailsCiudad" class="mt-1 text-gray-800 font-medium"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-4 rounded-lg md:col-span-2">
+                                <h3 class="font-medium text-gray-700 mb-3 flex items-center">
+                                    <i class="fas fa-sticky-note mr-2 text-gray-500"></i> Observaciones
+                                </h3>
+                                <div class="b   g-white p-3 rounded border border-gray-200">
+                                    <p id="detailsObservaciones" class="text-gray-800"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end px-6 py-4 border-t">
+                        <button onclick="closeModal('detailsProveedorModal')"
+                            class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-times mr-2"></i> Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>includeHTML();</script>
+</body>
+
+</html>

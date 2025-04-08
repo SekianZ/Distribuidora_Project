@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="/Estilos/xd.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos para el sidebar */
+        #sidebar {
+            width: 18rem;
+            transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            z-index: 20;
+            background: #193f6e;
+            color: white;
+            padding: 1.5rem 0;
+        }
+        
+        #sidebar.minimized {
+            width: 5rem;
+        }
+        
+        #sidebar.minimized .menu-text,
+        #sidebar.minimized #logo-text {
+            display: none;
+        }
+        
+        #sidebar.minimized .menu-item {
+            justify-content: center;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        #sidebar.minimized #logo-container {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        
+        /* Estilo mejorado para la flecha de minimizar - estilo PLAY */
+        #toggle-sidebar {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.8);
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 0.3rem;
+            padding: 0.15rem 0.3rem;
+            transition: all 0.2s ease;
+            border-radius: 3px;
+            line-height: 1;
+            position: relative;
+            top: -2px;
+        }
+        
+        #toggle-sidebar:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            transform: scale(1.1);
+        }
+        
+        #sidebar.minimized #toggle-sidebar {
+            transform: rotate(180deg);
+            left: 0.5rem;
+        }
+        
+        /* Estilos para el contenido principal */
+        .container {
+            margin-left: 18rem;
+            transition: margin-left 0.3s ease;
+            padding: 20px;
+        }
+        
+        #sidebar.minimized ~ .container {
+            margin-left: 5rem;
+        }
+        
+        /* Estilos para el popup */
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid black;
+            z-index: 1000;
+        }
+        
+        .popup-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        
+        /* Estilos para el encabezado */
+        .header-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .title-container {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        /* Estilos para el logo container */
+        #logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #logo-line {
+            width: 100%;
+            height: 1px;
+            background-color: rgba(0,0,0,0.3);
+            border-radius: 1px;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body class="font-roboto">
+    <!-- Sidebar -->
+    <div id="sidebar" class="flex flex-col">
+        <!-- Logo con flecha de minimizar estilo PLAY -->
+        <div id="logo-container">
+            <div class="logo-wrapper">
+                <div id="logo-text" class="font-bold text-3xl whitespace-nowrap">DISTRIBUIDORA</div>
+                <button id="toggle-sidebar" class="text-white" title="Minimizar menú">▶</button>
+            </div>
+            <div id="logo-line"></div>
+        </div>
+
+        <!-- Menú principal -->
+        <div class="flex-1 flex flex-col">
+            <a href="inicio.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">📊</i>
+                <span class="menu-text text-xl font-medium ml-4">INICIO</span>
+            </a>
+
+            <a href="Compras.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">📦</i>
+                <span class="menu-text text-xl font-medium ml-4">COMPRA</span>
+            </a>
+
+            <a href="Ventas.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">📦</i>
+                <span class="menu-text text-xl font-medium ml-4">VENTA</span>
+            </a>
+
+            <a href="usuarios.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">👥</i>
+                <span class="menu-text text-xl font-medium ml-4">USUARIOS</span>
+            </a>
+
+            <a href="inven.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">📋</i>
+                <span class="menu-text text-xl font-medium ml-4">INVENTARIO</span>
+            </a>
+
+            <a href="clientes.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">👥</i>
+                <span class="menu-text text-xl font-medium ml-4">CLIENTES</span>
+            </a>
+            <a href="provedor.html" class="menu-item flex items-center px-6 py-4 hover:bg-white hover:bg-opacity-15">
+                <i class="text-xl w-8 text-center">👥</i>
+                <span class="menu-text text-xl font-medium ml-4">PROVEEDORES</span>
+            </a>
+        </div>
+
+        <!-- Sección inferior -->
+        <div class="mt-auto">
+            <div id="bottom-line" class="w-full h-px bg-black bg-opacity-30 rounded-full mb-4 mx-auto px-6"></div>
+            <a href="../index.html" class="menu-item flex items-center px-6 py-4 text-white text-opacity-90 no-underline mx-2 my-1 hover:bg-red-600 hover:bg-opacity-90 hover:text-white">
+                <i class="text-xl w-8 text-center">⬅</i>
+                <span class="menu-text text-xl font-medium whitespace-nowrap ml-4">SALIR</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="container">
+        <!-- Encabezado con flecha de regreso -->
+        <div class="header-container">
+            <a href="inicio.html" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <div class="title-container">
+                <h1 class="text-2xl font-bold">Sistema de Gestión de Usuarios</h1>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <a href="clientes.html" class="tab">Registro de Clientes</a>
+            <a href="proovedor.html" class="tab">Registro de Proveedores</a>
+            <a href="usuarios.php" class="tab active">Registro de Usuarios</a>
+        </div>
+        
+        <button onclick="mostrarPopup()" id="btnNuevo">Nuevo Usuario</button>
+        
+        <div class="popup-backdrop" id="popupBackdrop"></div>
+        <div id="popup">
+            <h2>Permiso</h2>
+            <form id="formUsuario" onsubmit="enviarFormulario(event)">
+                <input type="hidden" id="idUsuario" name="idUsuario">
+                <div class="form-group">
+                    <label for="nombreUsuario">Nombre:</label>
+                    <input type="text" id="nombreUsuario" name="nombreUsuario" required>
+                </div>
+                <div class="form-group">
+                    <label for="contraseña">Contraseña:</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="contraseña" name="contraseña">
+                        <button type="button" id="toggleContraseña" class="toggle-password">👁️</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="permiso">Permiso:</label>
+                    <select id="permiso" name="permiso">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Supervisor">Supervisor</option>
+                        <option value="Contador">Contador</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Guardar</button>
+                    <button type="button" class="btn-secondary" onclick="cerrarPopup()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Permiso</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Contenido de la tabla de usuarios -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Variables de estado
+        let contraseñaVisible = false;
+        let enModoEdicion = false;
+
+        // Control del sidebar
+        const sidebar = document.getElementById('sidebar');
+        const toggleButton = document.getElementById('toggle-sidebar');
+
+        toggleButton.addEventListener('click', () => {
+            sidebar.classList.toggle('minimized');
+            
+            // Cambiar el tooltip según el estado
+            if (sidebar.classList.contains('minimized')) {
+                toggleButton.title = "Maximizar menú";
+            } else {
+                toggleButton.title = "Minimizar menú";
+            }
+        });
+
+        function manejarClicExterno(event) {
+            const popup = document.getElementById("popup");
+            if (event.target === popup) {
+                cerrarPopup();
+            }
+        }
+
+        // Función para mostrar popup de nuevo usuario
+        function mostrarPopup() {
+            enModoEdicion = false;
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popupBackdrop").style.display = "block";
+            document.addEventListener('click', manejarClicExterno);
+            limpiarFormulario();
+            document.getElementById("contraseña").readOnly = false;
+        }
+
+        function cerrarPopup() {
+            document.getElementById("popup").style.display = "none";
+            document.getElementById("popupBackdrop").style.display = "none";
+            document.removeEventListener('click', manejarClicExterno);
+            limpiarFormulario();
+        }
+
+        function enviarFormulario(event) {
+            event.preventDefault();
+            var formData = new FormData(document.getElementById("formUsuario"));
+
+            fetch("procesar_usuario.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    cerrarPopup();
+                    location.reload();
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        // Función para mostrar popup de edición
+        function mostrarPopupEditar(idUsuario, nombreUsuario, permiso, contraseña) {
+            document.getElementById("idUsuario").value = idUsuario;
+            document.getElementById("nombreUsuario").value = nombreUsuario;
+            document.getElementById("permiso").value = permiso;
+
+            const contraseñaInput = document.getElementById("contraseña");
+            contraseñaInput.value = contraseña;
+            contraseñaInput.type = 'password';
+
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popupBackdrop").style.display = "block";
+            document.addEventListener('click', manejarClicExterno);
+        }
+
+        function confirmarEliminacion(idUsuario) {
+            if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+                fetch("eliminar_usuario.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: "idUsuario=" + idUsuario
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        alert(data);
+                        location.reload();
+                    })
+                    .catch(error => console.error("Error:", error));
+            }
+        }
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById("formUsuario").reset();
+            document.getElementById("idUsuario").value = "";
+            const contraseñaInput = document.getElementById("contraseña");
+            contraseñaInput.value = "";
+            contraseñaInput.type = 'password';
+            contraseñaInput.readOnly = false;
+            document.getElementById("toggleContraseña").textContent = '👁️';
+            contraseñaVisible = false;
+            enModoEdicion = false;
+        }
+
+        // Función para alternar visibilidad de contraseña
+        function toggleContraseña() {
+            const contraseñaInput = document.getElementById("contraseña");
+            const toggleBtn = document.getElementById("toggleContraseña");
+
+            if (contraseñaInput.type === 'password') {
+                contraseñaInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                contraseñaInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+
+        // Inicializar el evento del botón
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById("toggleContraseña").addEventListener('click', toggleContraseña);
+        });
+    </script>
+</body>
+</html>

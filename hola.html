@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pruebas API - Distribuidora</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+        label, input, select { display: block; margin-bottom: 10px; width: 100%; }
+        button { background: #28a745; color: white; padding: 10px; border: none; cursor: pointer; }
+        button:hover { background: #218838; }
+        pre { background: #f4f4f4; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+
+    <h1>Pruebas API - Distribuidora</h1>
+
+    <form id="Registrar Venta">
+        <label for="cliente" class="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+        <select id="cliente" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+            <option value="">Seleccione un cliente</option>
+        </select>
+
+        <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+        <select id="producto" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+            <option value="">Seleccione un producto</option>
+        </select>
+
+        <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+        <input type="number" id="cantidad" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+
+        <label for="precio" class="block text-sm font-medium text-gray-700 mb-1">Precio Unitario (S/)</label>
+        <input type="number" step="0.01" id="precio" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+
+        <label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+        <input type="date" id="fecha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+
+        <label for="pago" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pago</label>
+        <select id="pago" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+            <option value="1">Efectivo</option>
+            <option value="2">Tarjeta</option>
+            <option value="3">Transferencia</option>
+        </select>
+        
+        <div id="manejoProducto" style="display: none;">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Manejo del Producto</label>
+            <div id="opcionesManejo" class="flex flex-col gap-2"></div>
+        </div>
+
+        <label class="block text-sm font-medium text-gray-700 mb-1">Total Venta (S/)</label>
+        <div id="total-venta" class="text-2xl font-bold text-green-600">0.00</div>
+
+        <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+        <textarea id="observaciones" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+
+        <button type="submit" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+            Registrar Venta
+        </button>
+    </form>
+
+    <form id="manejocategoriaForm">
+        <h2>Registrar manejo de categoria</h2>
+
+        <label>id categoria:</label>
+        <input type="number" id="idCategoriaManejo" required>
+
+        <label>Nueva descripcion:</label>
+        <input type="text" id="nombreManejoCategoria" required>
+    
+        <button type="button" onclick="registrarManejoProducto()">Registrar</button>
+    </form>
+
+    <form id="proveedorForm">
+        <h2>Registrar Proveedor</h2>
+        
+        <label>Nombre:</label>
+        <input type="text" id="nombreProveedor" required>
+    
+        <label>RUC:</label>
+        <input type="text" id="ruc" required>
+    
+        <label>Teléfono:</label>
+        <input type="text" id="telefonoProveedor" required>
+    
+        <label>Representante:</label>
+        <input type="text" id="representante" required>
+    
+        <label>Productos que vende:</label>
+        <select id="productosProveedor" multiple>
+            <option value="1">Bebidas</option>
+        </select>
+    
+        <button type="button" onclick="crearProveedor()">Registrar</button>
+    </form>
+
+    <!-- Formulario para registrar una compra -->
+    <form id="compraForm">
+        <h2>Registrar Compra</h2>
+        <label>Proveedor (ID):</label>
+        <input type="number" id="idProveedor" required>
+        <label>Producto (ID):</label>
+        <input type="number" id="idProducto" required>
+        <label>Cantidad Lote:</label>
+        <input type="number" id="cantidadLote" required>
+        <label>Tipo de Pago:</label>
+        <select id="tipoPago">
+            <option value="1">Efectivo</option>
+            <option value="2">Tarjeta</option>
+        </select>
+        <label>Monto:</label>
+        <input type="number" step="0.01" id="monto" required>
+        <label>Observaciones:</label>
+        <input type="text" id="observaciones">
+        <button type="button" onclick="crearCompra()">Registrar</button>
+    </form>
+
+    <form id="ventaForm">
+        <h2>Registrar Venta</h2>
+        <label>Cliente (ID):</label>
+        <input type="number" id="idCliente" required>
+        <label>Producto (ID):</label>
+        <input type="number" id="idProductoVenta" required>
+        <label>Manejo de Producto(ID):</label>
+        <select id="manejoProducto">
+            <option value="1">Trae su caja</option>
+        </select>
+        <label>Cantidad Lote:</label>
+        <input type="number" id="cantidadVenta" required>
+        <label></label>
+        <label>Tipo de Pago:</label>
+        <select id="IDtipoPago">
+            <option value="1">Efectivo</option>
+            <option value="2">Tarjeta</option>
+        </select>
+        <label>Monto:</label>
+        <input type="number" step="0.01" id="montoVenta" required>
+        <label>Observaciones:</label>
+        <input type="text" id="observacionesVenta">
+        <button type="button" onclick="crearVenta()">Registrar</button>
+    </form>
+
+    <form id="clienteForm">
+        <h2>Registrar Cliente</h2>
+        <label>Nombre:</label>
+        <input type="text" id="nombreCliente" required>
+        <label>Telefono:</label>
+        <input type="text" id="telefono" required>
+        <label>Estado:</label>
+        <select id="estado">
+            <option value="activo">Activo</option>
+            <option value="inactivo">Inactivo</option>
+        </select>
+        <button type="button" onclick="registrarCliente()">Registrar</button>
+    </form>
+
+    <form id="usuarioform">
+        <h2>Registrar Usuario</h2>
+        <label>Nombre:</label>
+        <input type="text" id="nombreUsuario" required>
+    
+        <label>Contraseña:</label>
+        <input type="password" id="contrasena" required> <!-- 🔹 Usa input tipo password -->
+    
+        <label>Tipo de usuario:</label>
+        <select id="tipo_usuario">
+            <option value="usuario">Usuario</option> <!-- 🔹 Cambiado a "usuario" -->
+            <option value="admin">Administrador</option> <!-- 🔹 Cambiado a "admin" -->
+        </select>
+    
+        <button type="button" onclick="registrarUsuario()">Registrar</button>
+    </form>
+    
+    <form id="categoriaForm">
+        <h2>Registrar categoria</h2>
+        <label>Nombre categoria</label>
+        <input type="text" id="nombreCategoria" required>
+    
+        <button type="button" onclick="registrarCategoria()">Registrar</button>
+    </form>
+
+    <form id="productoForm">
+        <h2>Registrar Producto</h2>
+        <label>Nombre producto:</label>
+        <input type="text" id="nombreProducto" required>
+    
+        <label>Precio:</label>
+        <input type="number" step="0.01" id="precio" required>
+
+        <label>Stock:</label>
+        <input type="number" id="stock">
+
+        <label>Estado Stock:</label>
+        <select id="estadoStock">
+            <option value="Agotado">Agotado</option>
+            <option value="Bajo">Bajo</option>
+            <option value="Medio">Medio</option>
+            <option value="Alto">Alto</option>
+        </select>
+
+        <label>Categoria:</label>
+        <select id="idCategoria">
+            <option value="1">Categoria Bebidas</option>
+        </select>
+    
+        <button type="button" onclick="registrarProducto()">Registrar</button>
+    </form>
+    
+    <h2>Resultados</h2>
+    <button onclick="obtenerProductos()">Ver Productos</button>
+    <button onclick="obtenerProveedores()">Ver Proveedores</button>
+    <button onclick="obtenerCompras()">Ver Compras</button>
+    <button onclick="obtenerClientes()">Ver Clientes</button>
+    <button onclick="obtenerUsuarios()">Ver usuarios</button>
+    <button onclick="obtenerCategorias()">Ver categorias</button>
+    <button onclick="obtenerProductos()">Ver productos</button>
+    <button onclick="obtenerVentas()">Ver ventas</button>
+    
+    <pre id="resultado"></pre>
+
+    <script>
+        function registrarManejoProducto() {
+            const data = {
+                idCategoria: document.getElementById("idCategoriaManejo").value,
+                descripcion: document.getElementById("nombreManejoCategoria").value
+            };
+            
+            console.log(data);
+
+            fetch(`/Backend/controllers/manejoCategoriaController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+        // 📌 Registrar Venta
+        function crearVenta() {
+            
+
+            const data = {
+                idCliente: document.getElementById("idCliente").value,
+                productos: [
+                    {
+                        idProducto: document.getElementById("idProductoVenta").value,
+                        cantidad: document.getElementById("cantidadVenta").value
+                    }
+                ],
+                idManejoProducto: document.getElementById("manejoProducto").value,
+                IdtipoPago: document.getElementById("IDtipoPago").value,
+                montoVenta: document.getElementById("montoVenta").value,
+                observacionesVenta: document.getElementById("observacionesVenta").value
+            };
+            console.log(data)
+
+            fetch(`/Backend/controllers/ventaController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        
+        }
+
+        // 📌 Registrar Producto
+        function registrarProducto() {
+            const data = {
+                nombreProducto: document.getElementById("nombreProducto").value,
+                idCategoria: document.getElementById("idCategoria").value,
+                precio: document.getElementById("precio").value,
+                stock: document.getElementById("stock").value,
+                estadoStock: document.getElementById("estadoStock").value
+            };
+
+            fetch(`/Backend/controllers/productoController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Registrar Producto
+        function registrarCliente() {
+            const data = {
+                nombreCliente: document.getElementById("nombreCliente").value,
+                telefono: document.getElementById("telefono").value,
+                estado: document.getElementById("estado").value
+            };
+
+            fetch(`/Backend/controllers/clienteController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+        
+        function registrarCategoria() {
+            const data = {
+                nombreCategoria: document.getElementById("nombreCategoria").value
+            };
+
+            fetch(`/Backend/controllers/categoriaController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+
+        function registrarUsuario() {
+            const nombreUsuario = document.getElementById("nombreUsuario").value.trim();
+            const contrasena = document.getElementById("contrasena").value.trim();
+            const tipoUsuario = document.getElementById("tipo_usuario").value || "usuario"; // 🔹 Valor por defecto
+
+            const data = {
+                nombreUsuario,
+                contrasena,
+                tipo_usuario: tipoUsuario,
+                action: "create"
+            };
+
+            fetch(`/Backend/controllers/usuarioController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+
+
+        // 📌 Registrar Proveedor
+        function crearProveedor() {
+            const selectProductos = document.getElementById("productosProveedor");
+            const selectedOptions = Array.from(selectProductos.selectedOptions);
+
+            const data = {
+                nombreProveedor: document.getElementById("nombreProveedor").value,
+                ruc: document.getElementById("ruc").value,
+                telefono: document.getElementById("telefonoProveedor").value,
+                representante: document.getElementById("representante").value,
+                productos: selectedOptions.map(option => option.value)
+            };
+
+            fetch(`/Backend/controllers/proveedorController.php`, { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(response => {
+                console.log("Respuesta del servidor:", response);
+                if (response.success) {
+                    alert(response.message); // Mensaje de éxito
+                } else {
+                    alert("Error: " + response.error); // Mensaje de error
+                }
+            })
+            .catch(error => {
+                console.error("Error en fetch:", error);
+                alert("Error al conectar con el servidor");
+            });
+        }
+
+
+
+        // 📌 Registrar Compra
+        function crearCompra() {
+            const data = {
+                idProveedor: document.getElementById("idProveedor").value,
+                productos: [
+                    {
+                        idProducto: document.getElementById("idProducto").value,
+                        cantidad: document.getElementById("cantidadLote").value
+                    }
+                ],
+                tipoPago: document.getElementById("tipoPago").value,
+                monto: document.getElementById("monto").value,
+                observaciones: document.getElementById("observaciones").value
+            };
+
+            console.log(data);
+
+            fetch(`/Backend/controllers/compraController.php`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        function agregarProducto(){
+            const data = {
+                idProducto: document.getElementById()
+            }
+        }
+
+        function obtenerUsuarios(){
+            fetch(`/Backend/controllers/usuarioController.php?action=getAll`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        function obtenerClientes(){
+            fetch(`/Backend/controllers/clienteController.php`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        function obtenerCategorias(){
+            fetch(`/Backend/controllers/categoriaController.php`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Obtener Productos
+        function obtenerProductos() {
+            fetch(`/Backend/controllers/productoController.php`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Obtener Proveedores
+        function obtenerProveedores() {
+            fetch('/Backend/controllers/proveedorController.php')
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Obtener Compras
+        function obtenerCompras() {
+            fetch(`/Backend/controllers/compraController.php`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Obtener Ventas
+        function obtenerVentas() {
+            fetch(`/Backend/controllers/ventaController.php`)
+            .then(res => res.json())
+            .then(data => mostrarResultado(data));
+        }
+
+        // 📌 Mostrar resultados en el `<pre>`
+        function mostrarResultado(data) {
+            document.getElementById("resultado").textContent = JSON.stringify(data, null, 4);
+        }
+
+        document.addEventListener("DOMContentLoaded", obtenerClientes);
+    </script>
+    
+</body>
+</html>

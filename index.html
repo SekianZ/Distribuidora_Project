@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/Estilos/Login/login.css">
+
+    
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+</head>
+<script>
+    fetch("/Backend/config/probarconexion.php")
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            console.log("✅ Conexión exitosa a la base de datos.");
+        } else {
+            console.error("❌ No se pudo conectar a la base de datos.");
+        }
+    })
+    .catch(error => console.error("Error en la solicitud:", error));
+</script>
+<body>
+    <div class="wrapper">
+        <form>
+            <h1>Login</h1>
+            <div class="input-box">
+                <input id="username" type="text" placeholder="Usuario" required>
+                <i class='bx bxs-user'></i>
+            </div>
+            <div class="input-box">
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <i class='bx bxs-low-vision' id="togglePassword" style="cursor: pointer;"></i>
+            </div>
+            
+            <!-- <div class="remember-forgot">
+                <label><input type="checkbox">Remember me</label>
+                <a href="#">Forgot password?</a>
+            </div>-->
+
+            <button type="button" onclick="validarLogin()" class="btn">Ingresar</button>
+
+            <!-- <div class="register-link">
+                <p>Don't have an account? <a href="#">Register</a></p>
+            </div>-->
+        </form>
+    </div>
+
+     <!-- JavaScript para mostrar/ocultar contraseña -->
+    <script src="/js/login.js"></script>
+</body>
+</html>

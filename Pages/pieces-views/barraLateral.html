@@ -1,0 +1,57 @@
+<!-- Sidebar -->
+<div id="sidebar"
+    class="w-72 bg-[#193f6e] text-white h-screen py-6 flex flex-col transition-all duration-300 ease-in-out">
+    <!-- Logo -->
+    <div id="logo-container"
+        class="flex flex-col items-center px-6 mb-6 transition-all duration-300">
+        <div id="logo-text"
+            class="h-12 font-bold text-3xl mb-4 whitespace-nowrap">DISTRIBUIDORA</div>
+        <div id="logo-line"
+            class="w-full h-1 bg-black bg-opacity-30 rounded-full"></div>
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <div id="search-container" class="px-6 mb-6 transition-all duration-300">
+        <div
+            class="flex items-center bg-white bg-opacity-15 rounded-lg px-4 py-3 shadow-md">
+            <i class="text-white text-opacity-70 mr-3 text-xl">🔍</i>
+            <input
+                class="bg-transparent border-none text-white text-lg w-full outline-none placeholder-white placeholder-opacity-70"
+                placeholder="Buscar...">
+        </div>
+    </div>
+
+    <!-- Menú principal -->
+    <div class="flex-1 flex flex-col">
+        <a href="#" id="inicio-link"
+            class="menu-item flex items-center px-6 py-4 text-white text-opacity-90 no-underline transition-all duration-200 mx-2 my-1 hover:bg-white hover:bg-opacity-15 hover:text-white active:bg-white active:bg-opacity-15 active:text-white border-l-4 border-blue-400">
+            <i class="mr-4 text-xl w-8 text-center">📊</i>
+            <span
+                class="menu-text text-xl font-medium whitespace-nowrap">INICIO</span>
+        </a>
+        <a href="#" id="usuarios-link"
+            class="menu-item flex items-center px-6 py-4 text-white text-opacity-90 no-underline transition-all duration-200 mx-2 my-1 hover:bg-white hover:bg-opacity-15 hover:text-white">
+            <i class="mr-4 text-xl w-8 text-center">👥</i>
+            <span
+                class="menu-text text-xl font-medium whitespace-nowrap">USUARIOS</span>
+        </a>
+        <a href="#" id="productos-link"
+            class="menu-item flex items-center px-6 py-4 text-white text-opacity-90 no-underline transition-all duration-200 mx-2 my-1 hover:bg-white hover:bg-opacity-15 hover:text-white">
+            <i class="mr-4 text-xl w-8 text-center">📦</i>
+            <span
+                class="menu-text text-xl font-medium whitespace-nowrap">PRODUCTOS</span>
+        </a>
+    </div>
+
+    <!-- Sección inferior -->
+    <div class="mt-auto">
+        <div id="bottom-line"
+            class="w-full h-1 bg-black bg-opacity-30 rounded-full mb-4 mx-auto px-6 transition-all duration-300"></div>
+        <button onclick="cerrarSesion()"
+            class="menu-item flex items-center px-6 py-4 text-white text-opacity-90 no-underline transition-all duration-200 mx-2 my-1 hover:bg-red-600 hover:bg-opacity-90 hover:text-white">
+            <i class="mr-4 text-xl w-8 text-center">⬅</i>
+            <span
+                class="menu-text text-xl font-medium whitespace-nowrap">SALIR</span>
+        </button>
+    </div>
+</div>

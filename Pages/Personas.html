@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios</title>
+    <link rel="stylesheet" href="/Estilos/estilo.css">
+
+
+    <script>
+        // Variables de estado
+        let contraseñaVisible = false;
+        let enModoEdicion = false;
+
+        function manejarClicExterno(event) {
+            const popup = document.getElementById("popup");
+            if (event.target === popup) {
+                cerrarPopup();
+            }
+        }
+
+        // Función para mostrar popup de nuevo usuario
+        function mostrarPopup() {
+            enModoEdicion = false;
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popupBackdrop").style.display = "block";
+            document.addEventListener('click', manejarClicExterno);
+            limpiarFormulario();
+            document.getElementById("contraseña").readOnly = false; // Permitir edición en nuevo
+        }
+
+
+        function cerrarPopup() {
+            document.getElementById("popup").style.display = "none";
+            // Asegurarse de ocultar el backdrop también
+            if (document.getElementById("popupBackdrop")) {
+                document.getElementById("popupBackdrop").style.display = "none";
+            }
+            document.removeEventListener('click', manejarClicExterno);
+            limpiarFormulario();
+        }
+
+
+        function enviarFormulario(event) {
+            event.preventDefault();
+            var formData = new FormData(document.getElementById("formUsuario"));
+
+            fetch("procesar_usuario.php", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);
+                    cerrarPopup();
+                    location.reload();
+                })
+                .catch(error => console.error("Error:", error));
+        }
+
+        // Función para mostrar popup de edición
+        function mostrarPopupEditar(idUsuario, nombreUsuario, permiso, contraseña) {
+            document.getElementById("idUsuario").value = idUsuario;
+            document.getElementById("nombreUsuario").value = nombreUsuario;
+            document.getElementById("permiso").value = permiso;
+
+            // Mostrar contraseña real (sin cifrado)
+            const contraseñaInput = document.getElementById("contraseña");
+            contraseñaInput.value = contraseña; // Mostramos el texto plano
+            contraseñaInput.type = 'password'; // Ocultamos por defecto
+
+            document.getElementById("popup").style.display = "block";
+            document.getElementById("popupBackdrop").style.display = "block";
+        }
+
+
+        function confirmarEliminacion(idUsuario) {
+            if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+                fetch("eliminar_usuario.php", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        },
+                        body: "idUsuario=" + idUsuario
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        alert(data);
+                        location.reload();
+                    })
+                    .catch(error => console.error("Error:", error));
+            }
+        }
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById("formUsuario").reset();
+            document.getElementById("idUsuario").value = "";
+            const contraseñaInput = document.getElementById("contraseña");
+            contraseñaInput.value = "";
+            contraseñaInput.type = 'password';
+            contraseñaInput.readOnly = false;
+            document.getElementById("toggleContraseña").textContent = '👁️';
+            contraseñaVisible = false;
+            enModoEdicion = false;
+        }
+
+        // Función para alternar visibilidad de contraseña
+
+        function toggleContraseña() {
+            const contraseñaInput = document.getElementById("contraseña");
+            const toggleBtn = document.getElementById("toggleContraseña");
+
+            if (contraseñaInput.type === 'password') {
+                contraseñaInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                contraseñaInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        }
+        // Inicializar el evento del botón
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById("toggleContraseña").addEventListener('click', toggleContraseña);
+        });
+    </script>
+    <style>
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <button onclick="mostrarPopup()" id="btnNuevo">Nuevo Usuario</button>
+    <div class="popup-backdrop" id="popupBackdrop"></div>
+    <div id="popup">
+        <h2>Permiso</h2>
+        <form id="formUsuario" onsubmit="enviarFormulario(event)">
+            <input type="hidden" id="idUsuario" name="idUsuario">
+            <div class="form-group">
+                <label for="nombreUsuario">Nombre:</label>
+                <input type="text" id="nombreUsuario" name="nombreUsuario" required>
+            </div>
+            <div class="form-group">
+                <label for="contraseña">Contraseña:</label>
+                <div class="password-wrapper">
+                    <input type="password" id="contraseña" name="contraseña">
+                    <button type="button" id="toggleContraseña" class="toggle-password">👁️</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="permiso">Permiso:</label>
+                <select id="permiso" name="permiso">
+                    <option value="Administrador">Administrador</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="Contador">Contador</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Guardar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarPopup()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Permiso</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+</body>
+
+</html>

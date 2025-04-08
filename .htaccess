@@ -1,0 +1,26 @@
+# Habilitar la reescritura de URL (mod_rewrite)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirigir todas las solicitudes a index.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
+</IfModule>
+
+# Asegurar que PHP se ejecute correctamente
+AddType application/x-httpd-php .php
+
+# Permitir CORS para peticiones desde otros dominios (ajustar según sea necesario)
+Header set Access-Control-Allow-Origin "*"
+Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+
+# Forzar HTTPS (si es necesario)
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTPS} !=on
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Asegurarse de que el servidor siempre busque los archivos index.php
+DirectoryIndex index.php index.html index.htm

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuidora - Ventas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="../js/node_modules/select2/dist/js/select2.min.js"></script>
+    <link href="../js/node_modules/select2/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="../js/sidebar.js"></script>
+    <script src="../js/tarjetas.js"></script>
+    <link  rel="stylesheet" href="../Estilos/tarjetas.css">
+    <style>
+        #main-content {
+            margin-left: 0;
+        }
+
+        @media (min-width: 768px) {
+            #main-content {
+                margin-left: 16rem; 
+            }
+            #main-content.sidebar-collapsed {
+                margin-left: 5rem; 
+            }
+        }
+        
+        /* Personalizar el estilo de Select2 para que se parezca a Tailwind */
+        .select2-container .select2-selection--single {
+            border: 1px solid #d1d5db; /* Bordes similares a Tailwind */
+            border-radius: 0.5rem; /* Bordes redondeados como Tailwind */
+            padding: 0.5rem; /* Padding similar al de Tailwind */
+            font-family: 'Roboto', sans-serif; /* Mantener la misma fuente */
+            height: 2.5rem; /* Asegurar que el alto coincida con el de Tailwind */
+            display: flex;
+            align-items: center;
+        }
+
+        .select2-container--default .select2-selection__rendered {
+            font-size: 1rem; /* Ajustar el tamaño de fuente para que coincida con Tailwind */
+            color: #4b5563; /* Color del texto, ajustado a Tailwind */
+        }
+
+        .select2-container .select2-selection__arrow {
+            display: none; /* Eliminar la flecha por defecto de Select2 */
+        }
+
+        .select2-container .select2-selection--single .select2-selection__clear {
+            display: none; /* Eliminar la opción de limpiar el campo */
+        }
+
+        .select2-dropdown {
+            border-radius: 0.5rem; /* Bordes redondeados en el dropdown */
+            border: 1px solid #d1d5db; /* Bordes similares a Tailwind */
+        }
+
+        .select2-results__option {
+            font-size: 1rem; /* Coincidir el tamaño de fuente */
+            padding: 0.75rem; /* Padding similar al de Tailwind */
+            color: #4b5563; /* Color de texto similar a Tailwind */
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #3b82f6; /* Resaltar elementos como en Tailwind */
+            color: white; /* Texto blanco cuando se resalta */
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .animate-modal { animation: modalFadeIn 0.3s ease; }
+        .observaciones-modal {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .option-card {
+            transition: all 0.3s ease;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar-transition {
+            transition: all 0.3s ease-in-out;
+        }
+        .menu-item-active {
+            border-left: 4px solid #60a5fa;
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        .table-row-hover:hover {
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex overflow-hidden h-screen font-roboto">
+    <!-- Sidebar -->
+    <div w3-include-html="/Pages/pieces-views/sidebar.html"></div>
+
+    
+    <!-- Contenido principal -->
+    <div id="main-content" class="flex-1 overflow-auto transition-all duration-300">
+
+        <!-- Contenedor principal -->
+        <div class="container mx-auto p-6">
+            <!-- Encabezado -->
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center">
+                    <button id="btn-regresar" class="mr-4 text-gray-600 hover:text-gray-800">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                    </button>
+                    <h1 class="text-3xl font-bold text-gray-800">Registro de Ventas</h1>
+                </div>
+            </div>
+
+            <!-- Barra de acciones y búsqueda -->
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <button id="btn-agregar-venta" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 flex items-center shadow-md hover:shadow-lg">
+                    <i class="mr-2">+</i> Nueva Venta
+                </button>
+                
+                <div class="relative w-full md:w-64">
+                    <input type="text" id="buscador-ventas" class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Buscar ventas...">
+                    <div class="absolute left-3 top-2.5 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de ventas -->
+            <div class="stock-metrics">
+                <div class="metric-card">
+                    <div class="metric-title">Stock Cerveza Paceña</div>
+                    <div class="metric-value" id="stock-paceña">100</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Stock Cerveza Huari</div>
+                    <div class="metric-value" id="stock-huari">57</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-title">Stock Balones de Gas</div>
+                    <div class="metric-value" id="stock-gas">35</div>
+                </div>
+
+            </div>
+            <div class="bg-white rounded-lg shadow overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manejo de Producto</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio Unit.</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-ventas-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Las ventas se agregarán aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal para agregar/editar venta -->
+            <div id="modal-venta" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl animate-modal">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h3 class="text-xl font-semibold text-gray-800" id="titulo-modal-venta">Registrar Nueva Venta</h3>
+                        <button id="cerrar-modal" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <form id="form-venta" class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                            
+                            <div class="flex flex-col space-y-4 mb-4">
+                                <!-- Cliente -->
+                                <label class="text-sm font-medium text-gray-700">Cliente</label>
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="cliente-frecuente" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                        <label for="cliente-frecuente" class="ml-2 text-gray-700">Frecuente</label>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input type="checkbox" id="cliente-nuevo" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                        <label for="cliente-nuevo" class="ml-2 text-gray-700">Nuevo</label>
+                                    </div>
+                                </div>
+                            
+                                <!-- Campos adicionales para cliente frecuente -->
+                                <div id="cliente-frecuente-form" class="hidden space-y-4 mt-4">
+                                    <div>
+                                        <label for="select-cliente-frecuente" class="block text-sm font-medium text-gray-700 mb-1">Seleccionar Cliente</label>
+                                        <select id="select-cliente-frecuente" class="js-example-basic-single w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
+                                        </select>
+                                    </div>
+                                </div>
+                            
+                                <!-- Campos adicionales para cliente nuevo -->
+                                <div id="cliente-nuevo-form" class="hidden space-y-4 mt-4">
+                                    <div>
+                                        <label for="nombre-cliente" class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                                        <input type="text" id="nombre-cliente" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                                    </div>
+                                    <div>
+                                        <label for="telefono-cliente" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                                        <input type="tel" id="telefono-cliente" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" />
+                                    </div>
+                                    <button type="button" id="guardar-cliente" onclick="sistemaBotonCliente()" class="hidden px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                                        Guardar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Tipo de Producto -->
+                            <div>
+                                <label for="tipo-producto" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Producto</label>
+                                <select id="tipo-producto" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="">Seleccione un tipo</option>
+                                    <option value="1">Gas</option>
+                                    <option value="2">Bebidas</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Producto -->
+                            <div>
+                                <label for="producto" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                                <select id="producto" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="">Seleccione un producto</option>
+                                    <option value="1">Cerveza Huari</option>
+                                    <option value="2">Cerveza Paceña</option>
+                                    <option value="3">Balon de Gas</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Cantidad -->
+                            <div>
+                                <label for="cantidad" class="block text-sm font-medium text-gray-700 mb-1">Cantidad</label>
+                                <input type="number" id="cantidad" class="mt-2 w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                            </div>
+                            
+                            <!-- Precio Unitario -->
+                            <div>
+                                <label for="precio" class="block text-sm font-medium text-gray-700 mb-1">Precio (S/)</label>
+                                <input type="number" step="0.01" id="precio" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                            </div>
+                            
+                            <!-- Fecha -->
+                            <div>
+                                <!--<label for="fecha" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>-->
+                                <input type="date" id="fecha" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" hidden>
+                            </div>
+                            
+                            <!-- Tipo de Pago -->
+                            <div>
+                                <label for="pago" class="block text-sm font-medium text-gray-700 mb-1">Tipo de Pago</label>
+                                <select id="pago" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm" required>
+                                    <option value="1">Efectivo</option>
+                                    <option value="2">Yape</option>
+                                    <option value="3">Plin</option>
+                                </select>
+                            </div>
+
+                            <div id="manejoProducto" style="display: none;">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Manejo del Producto</label>
+                                <div id="opcionesManejo" class="flex flex-col gap-2"></div>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <label for="observaciones" class="block text-sm font-medium text-gray-700 mb-1">Observaciones</label>
+                                <textarea id="observaciones" rows="3" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Venta (S/)</label>
+                                <div id="total-venta" class="text-2xl font-bold text-green-600">0.00</div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end gap-4 mt-8">
+                            <button type="button" id="cancelar-venta" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors duration-200 shadow-sm">
+                                Cancelar
+                            </button>
+                            <button onclick="guardarVenta(event)" type="button" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                                Registrar Venta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para ver observaciones -->
+            <div id="modal-observaciones" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+                <div class="bg-white rounded-lg shadow-xl w-full max-w-md animate-modal observaciones-modal">
+                    <div class="flex justify-between items-center border-b px-6 py-4">
+                        <h3 class="text-xl font-semibold text-gray-800">Observaciones de la Venta</h3>
+                        <button id="cerrar-modal-observaciones" class="text-gray-500 hover:text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div id="texto-observaciones" class="text-gray-700 whitespace-pre-line"></div>
+                    </div>
+                    
+                    <div class="flex justify-end px-6 py-4 border-t">
+                        <button id="cerrar-observaciones" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/ventas.js"></script>
+    <script src="/js/inicio.js"></script>
+    <script>includeHTML();</script>
+</body>
+</html>
