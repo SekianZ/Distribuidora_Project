@@ -21,10 +21,10 @@
 }
 
 .metric-title {
-    font-size: 14px;
+    font-size: 16px;
     color: var(--gray-color);
-    margin-bottom: 10px;
-    font-weight: 500;
+    margin-bottom: 6px;
+    font-weight: 600;
 }
 
 .metric-value {
@@ -32,3 +32,50 @@
     font-weight: 700;
     color: var(--primary-color);
 }
+
+/* Estilos para las métricas de clientes */
+.client-metrics {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    justify-content: center;
+    max-width: 800px; /* Ajusta según necesites */
+    margin: 0 auto; /* Esto centra el grid */
+}
+
+
+/* Colores específicos para cada tarjeta */
+.client-metrics .metric-card:nth-child(1) {
+    border-top: 4px solid var(--primary-color);
+}
+
+.client-metrics .metric-card:nth-child(2) {
+    border-top: 4px solid var(--success-color);
+}
+
+.client-metrics .metric-card:nth-child(3) {
+    border-top: 4px solid var(--info-color);
+}
+
+.client-metrics .metric-card:nth-child(4) {
+    border-top: 4px solid var(--warning-color);
+}
+
+/* Colores específicos para cada tarjeta */
+.stock-metrics .metric-card:nth-child(1) {
+    border-top: 4px solid var(--primary-color);
+}
+
+.stock-metrics .metric-card:nth-child(2) {
+    border-top: 4px solid var(--success-color);
+}
+
+.stock-metrics .metric-card:nth-child(3) {
+    border-top: 4px solid var(--info-color);
+}
+

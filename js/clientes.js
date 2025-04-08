@@ -2,8 +2,13 @@
 
 // Funciones para los modales
 function openModal(modalId) {
-    document.getElementById(modalId).style.display = "flex";
+    const modal = document.getElementById(modalId);
+    modal.style.display = "flex";
     document.body.style.overflow = "hidden";
+    
+    // Deshabilitar el cierre al hacer clic fuera
+    modal.style.pointerEvents = "auto"; // Asegurar que el modal sea clickeable
+    modal.querySelector('.modal-content').style.pointerEvents = "auto"; // Asegurar que el contenido sea clickeable
 }
 
 function closeModal(modalId) {
@@ -15,18 +20,28 @@ function openEditModal(button) {
     openModal("nuevoClienteModal");
 }
 
-function confirmDelete(button) {
-    if (confirm("¿Seguro que deseas eliminar este cliente?")) {
-        let row = button.closest("tr");
-        if (row) row.remove();
+async function confirmDelete(button) {
+    const id = button.getAttribute('data-id');
+    const nombre = button.closest('tr').querySelector('td:first-child').textContent;
+
+    if (confirm(`¿Seguro que deseas marcar como inactivo al cliente "${nombre}"?`)) {
+        try {
+            const resultado = await eliminarCliente(id);
+            
+            if (resultado.estado) {
+                alert('Cliente marcado como inactivo');
+                cargarClientes(); // Recargar la lista (que solo muestra activos)
+            } else {
+                alert('Error: ' + resultado.mensaje);
+            }
+        } catch (error) {
+            console.error('Error al eliminar cliente:', error);
+            alert('Error al conectar con el servidor');
+        }
     }
 }
 
-
-
-// clientes.js - Agregar estas funciones al final del archivo
-
-// Función para cargar clientes desde el backend
+// Actualizar la función cargarClientes para usar openDetallesModal
 async function cargarClientes() {
     try {
         const response = await fetch('../Backend/controllers/clienteController.php');
@@ -36,18 +51,28 @@ async function cargarClientes() {
         tabla.innerHTML = '';
 
         clientes.forEach(cliente => {
-            const estadoClass = cliente.estado === 'Activo' ? 'status-active' : 'status-inactive';
             const fila = `
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cliente.nombreCliente}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cliente.telefono || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cliente.correo || '-'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="status-badge ${estadoClass}">${cliente.estado}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button onclick="openEditModal(this)" data-id="${cliente.idCliente}" class="text-blue-600 hover:text-blue-900 mr-3">Editar</button>
-                        <button onclick="confirmDelete(this)" data-id="${cliente.idCliente}" class="text-red-600 hover:text-red-900">Eliminar</button>
+                    <td class="px-6 py-4 whitespace-nowrap flex gap-2">
+                        <button class="text-blue-600 hover:text-blue-800" onclick="openDetallesModal(this)" data-id="${cliente.idCliente}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                                <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <button class="text-yellow-600 hover:text-yellow-800" onclick="openEditModal(this)" data-id="${cliente.idCliente}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                        </button>
+                        <button class="text-red-600 hover:text-red-800" onclick="confirmDelete(this)" data-id="${cliente.idCliente}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </td>
                 </tr>
             `;
@@ -76,7 +101,7 @@ async function crearCliente(datosCliente) {
     }
 }
 
-// Función para manejar el envío del formulario
+
 // Función para manejar el envío del formulario (crear/editar)
 function manejarFormularioCliente() {
     const form = document.getElementById('formCliente');
@@ -84,31 +109,45 @@ function manejarFormularioCliente() {
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         
+        // Validar campos requeridos
+        const nombre = document.getElementById('nombreCliente').value.trim();
+        const telefono = document.getElementById('telefono').value.trim();
+        
+        if (!nombre) {
+            alert('El nombre del cliente es obligatorio');
+            return;
+        }
+
+        // Construir objeto de datos (sin el campo estado)
         const datosCliente = {
-            nombreCliente: document.getElementById('nombreCliente').value,
-            telefono: document.getElementById('telefono').value,
-            correo: document.getElementById('correo').value,
-            estado: document.getElementById('estado').value
+            nombreCliente: nombre,
+            telefono: telefono || null, // Si está vacío, se envía como null
+            correo: document.getElementById('correo').value.trim() || null
         };
         
         const idCliente = document.getElementById('idCliente').value;
         let resultado;
         
-        if (idCliente) {
-            // Editar cliente existente
-            resultado = await editarCliente(idCliente, datosCliente);
-        } else {
-            // Crear nuevo cliente
-            resultado = await crearCliente(datosCliente);
-        }
-        
-        if (resultado.estado) {
-            alert(idCliente ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente');
-            closeModal('nuevoClienteModal');
-            cargarClientes();
-            form.reset();
-        } else {
-            alert('Error: ' + (resultado.mensaje || 'Operación fallida'));
+        try {
+            if (idCliente) {
+                // Editar cliente existente
+                resultado = await editarCliente(idCliente, datosCliente);
+            } else {
+                // Crear nuevo cliente (se asigna estado "Activo" automáticamente en el backend)
+                resultado = await crearCliente(datosCliente);
+            }
+            
+            if (resultado.estado) {
+                alert(idCliente ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente');
+                closeModal('nuevoClienteModal');
+                cargarClientes();
+                resetearModal();
+            } else {
+                throw new Error(resultado.mensaje || 'Operación fallida');
+            }
+        } catch (error) {
+            console.error('Error en manejarFormularioCliente:', error);
+            alert('Error: ' + error.message);
         }
     });
 }
@@ -159,6 +198,35 @@ async function confirmDelete(button) {
     }
 }
 
+async function openDetallesModal(button) {
+    const id = button.getAttribute('data-id');
+    
+    try {
+        // Obtener datos del cliente
+        const response = await fetch(`../Backend/controllers/clienteController.php?id=${id}`);
+        const cliente = await response.json();
+
+        // Llenar el modal de detalles
+        document.getElementById('detalle-id').textContent = cliente.idCliente;
+        document.getElementById('detalle-nombre').textContent = cliente.nombreCliente;
+        document.getElementById('detalle-telefono').textContent = cliente.telefono || '-';
+        document.getElementById('detalle-correo').textContent = cliente.correo || '-';
+        
+
+        // Configurar el botón de editar para que abra el modal de edición
+        document.getElementById('btnEditarDesdeDetalle').onclick = function() {
+            closeModal('detallesClienteModal');
+            openEditModal(button);
+        };
+
+        // Abrir modal
+        openModal('detallesClienteModal');
+    } catch (error) {
+        console.error('Error al cargar detalles del cliente:', error);
+        alert('Error al cargar detalles del cliente');
+    }
+}
+
 // Función para abrir modal de edición
 async function openEditModal(button) {
     const id = button.getAttribute('data-id');
@@ -173,7 +241,6 @@ async function openEditModal(button) {
         document.getElementById('nombreCliente').value = cliente.nombreCliente;
         document.getElementById('telefono').value = cliente.telefono;
         document.getElementById('correo').value = cliente.correo || '';
-        document.getElementById('estado').value = cliente.estado;
 
         // Cambiar título del modal
         document.getElementById('modalTitulo').textContent = 'Editar Cliente';
@@ -190,13 +257,17 @@ async function openEditModal(button) {
 function configurarCierreModal() {
     const modal = document.getElementById('nuevoClienteModal');
     
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            resetearModal();
-        }
+    // Solo el botón de cerrar (×) y el botón Cancelar resetearán el modal
+    document.querySelector('#nuevoClienteModal .close').addEventListener('click', function() {
+        resetearModal();
+        closeModal('nuevoClienteModal');
     });
     
-    document.querySelector('#nuevoClienteModal .close').addEventListener('click', resetearModal);
+    // Configurar el botón Cancelar
+    document.querySelector('#nuevoClienteModal .modal-footer button[onclick*="closeModal"]').addEventListener('click', function() {
+        resetearModal();
+        closeModal('nuevoClienteModal');
+    });
 }
 
 function resetearModal() {
@@ -205,6 +276,9 @@ function resetearModal() {
     document.getElementById('idCliente').value = '';
     document.getElementById('modalTitulo').textContent = 'Registrar Nuevo Cliente';
     document.getElementById('btnGuardar').textContent = 'Guardar Cliente';
+    
+    // Opcional: Resetear clases de validación si las hay
+    document.getElementById('nombreCliente').classList.remove('border-red-500');
 }
 
 // Inicialización al cargar la página

@@ -25,7 +25,7 @@ function stocksParaTarjetas() {
                 case "cerveza huari":
                     stockHuari.textContent = producto.stock;
                     break;
-                case "gas generico":
+                case "gas":
                     stockGas.textContent = producto.stock;
                     break;
                 default:
@@ -37,5 +37,32 @@ function stocksParaTarjetas() {
     .catch(error => console.error("Error al obtener los stocks:", error));
 }
 
-// Llamada a la función al cargar la página
-document.addEventListener('DOMContentLoaded', stocksParaTarjetas);
+function actualizarTarjetasClientes() {
+    const clientesTotales = document.getElementById("clientes-totales");
+    const clientesActivos = document.getElementById("clientes-activos");
+
+    fetch("/Backend/controllers/TarjetasController.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accion: "obtenerEstadisticasClientes" })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Datos de clientes obtenidos:", data);
+        if (data.error) {
+            console.error("Error al obtener los clientes:", data.error);
+            return;
+        }
+
+        // Actualizar las tarjetas con los datos recibidos
+        clientesTotales.textContent = data.totalClientes;
+        clientesActivos.textContent = data.clientesActivos;
+    })
+    .catch(error => console.error("Error al obtener los clientes:", error));
+}
+
+// Llamada a ambas funciones al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    stocksParaTarjetas();
+    actualizarTarjetasClientes();
+});

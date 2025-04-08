@@ -7,25 +7,29 @@
     <title>Clientes - Sistema de Gestión de Inventario</title>
     <link rel="stylesheet" href="/Estilos/xd.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/Estilos/tarjetas.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="../js/sidebar.js"></script>
     <script src="../js/clientes.js"></script>
+    <script src="../js/tarjetas.js"></script>
+
     <style>
         .animate-modal {
             animation: modalFadeIn 0.3s ease-out;
         }
-        
+
         @keyframes modalFadeIn {
             from {
                 opacity: 0;
                 transform: translateY(-20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
-        
+
         .status-badge {
             display: inline-block;
             padding: 0.25rem 0.5rem;
@@ -33,26 +37,27 @@
             font-size: 0.75rem;
             font-weight: 600;
         }
-        
+
+        /**
         .status-active {
             background-color: #dcfce7;
             color: #166534;
         }
-        
+
         .status-inactive {
             background-color: #fee2e2;
             color: #991b1b;
         }
-        
+
         .status-Frecuentes {
             background-color: #dbeafe;
             color: #1e40af;
-        }
-        
+        } **/
+
         .tab-mini {
             cursor: pointer;
         }
-        
+
         .tab-mini.active {
             border-bottom: 2px solid #3b82f6;
             color: #3b82f6;
@@ -83,23 +88,18 @@
 
             <!-- Línea horizontal arriba de las métricas -->
             <hr class="mb-6 border-gray-300">
+
             <!-- Métricas -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="metric-card border-l-4 border-blue-500">
-                    <div class="metric-title">Total Clientes</div>
-                    <div class="metric-value">358</div>
-                </div>
-                <div class="metric-card border-l-4 border-green-500">
-                    <div class="metric-title">Clientes Activos</div>
-                    <div class="metric-value">245</div>
-                </div>
-                <div class="metric-card border-l-4 border-purple-500">
-                    <div class="metric-title">Clientes Frecuentes</div>
-                    <div class="metric-value">42</div>
-                </div>
-                <div class="metric-card border-l-4 border-yellow-500">
-                    <div class="metric-title">Nuevos (Este Mes)</div>
-                    <div class="metric-value">15</div>
+            <div class="client-metrics">
+                <div class="metric-grid">
+                    <div class="metric-card border-l-4 border-blue-500">
+                        <div class="metric-title">Total Clientes</div>
+                        <div class="metric-value" id="clientes-totales">0</div>
+                    </div>
+                    <div class="metric-card border-l-4 border-green-500">
+                        <div class="metric-title">Clientes Activos</div>
+                        <div class="metric-value" id="clientes-activos">0</div>
+                    </div>
                 </div>
             </div>
 
@@ -120,13 +120,12 @@
 
                 <div class="flex gap-2">
 
-                    <select
+                    <!-- <select
                         class="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm">
                         <option value="">Estado</option>
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
-                        <option value="Frecuentes">Frecuentes</option>
-                    </select>
+                    </select> -->
 
                     <button
                         class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-sm">
@@ -152,9 +151,9 @@
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Correo</th>
-                                <th
+                                <!-- <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Estado</th>
+                                    Estado</th> -->
                                 <th
                                     class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Acciones</th>
@@ -248,18 +247,17 @@
                                 class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Correo electrónico">
                         </div>
-                        <div>
+                        <!-- <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                             <select id="estado"
                                 class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="Activo">Activo</option>
                                 <option value="Inactivo">Inactivo</option>
-                                <option value="Frecuentes">Frecuentes</option>
                             </select>
-                        </div>
+                        </div> -->
                     </div>
 
-                    
+
                     <div class="modal-footer flex justify-end gap-4">
                         <button type="button" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
                             onclick="closeModal('nuevoClienteModal')">Cancelar</button>
@@ -279,62 +277,33 @@
                 <span class="close" onclick="closeModal('detallesClienteModal')">&times;</span>
             </div>
 
-            <div class="tabs-mini flex border-b mb-4">
-                <div class="tab-mini active px-4 py-2 border-b-2 border-blue-500">Información General</div>
-                <div class="tab-mini px-4 py-2">Historial de Compras</div>
-                <div class="tab-mini px-4 py-2">Cajas Prestadas</div>
-            </div>
-
             <div class="modal-body px-6 py-4 space-y-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500">Código de Cliente</label>
-                        <p class="mt-1 text-sm text-gray-900">CLI-001</p>
+                        <p class="mt-1 text-sm text-gray-900" id="detalle-id">-</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Tipo de Cliente</label>
-                        <p class="mt-1 text-sm text-gray-900">Empresa</p>
-                    </div>
+                    <!-- <div>
+                        <label class="block text-sm font-medium text-gray-500">Estado</label>
+                        <p class="mt-1 text-sm text-gray-900" id="detalle-estado">-</p>
+                    </div> -->
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500">Nombre / Razón Social</label>
-                        <p class="mt-1 text-sm text-gray-900">Restaurante El Sabor</p>
+                        <p class="mt-1 text-sm text-gray-900" id="detalle-nombre">-</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-500">RUC / DNI</label>
-                        <p class="mt-1 text-sm text-gray-900">1023456789</p>
+                        <label class="block text-sm font-medium text-gray-500">Teléfono</label>
+                        <p class="mt-1 text-sm text-gray-900" id="detalle-telefono">-</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Teléfono Principal</label>
-                        <p class="mt-1 text-sm text-gray-900">71234567</p>
-                    </div>
+                <div class="grid grid-cols-1 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-500">Correo Electrónico</label>
-                        <p class="mt-1 text-sm text-gray-900">contacto@elsabor.com.bo</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Dirección</label>
-                        <p class="mt-1 text-sm text-gray-900">Av. 6 de Agosto #1234, Zona Sur</p>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Ciudad</label>
-                        <p class="mt-1 text-sm text-gray-900">La Paz</p>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500">Estado</label>
-                        <p class="mt-1 text-sm text-gray-900"><span
-                                class="status-badge status-Frecuentes">Frecuentes</span></p>
+                        <p class="mt-1 text-sm text-gray-900" id="detalle-correo">-</p>
                     </div>
                 </div>
             </div>
@@ -342,10 +311,12 @@
             <div class="modal-footer flex justify-end gap-4">
                 <button class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-lg"
                     onclick="closeModal('detallesClienteModal')">Cerrar</button>
-                <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">Editar Cliente</button>
+                <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg"
+                    id="btnEditarDesdeDetalle">Editar Cliente</button>
             </div>
         </div>
     </div>
+
     <script>includeHTML();</script>
 </body>
 

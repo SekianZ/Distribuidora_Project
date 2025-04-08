@@ -430,59 +430,7 @@ tr:hover {
     }
 }
 
-/* Clientes */
 
-/* Estilos para las métricas de clientes */
-.client-metrics {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.metric-card {
-    background-color: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.metric-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-}
-
-.metric-title {
-    font-size: 14px;
-    color: var(--gray-color);
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-.metric-value {
-    font-size: 28px;
-    font-weight: 700;
-    color: var(--primary-color);
-}
-
-/* Colores específicos para cada tarjeta */
-.client-metrics .metric-card:nth-child(1) {
-    border-top: 4px solid var(--primary-color);
-}
-
-.client-metrics .metric-card:nth-child(2) {
-    border-top: 4px solid var(--success-color);
-}
-
-.client-metrics .metric-card:nth-child(3) {
-    border-top: 4px solid var(--info-color);
-}
-
-.client-metrics .metric-card:nth-child(4) {
-    border-top: 4px solid var(--warning-color);
-}
 
 
 /* redireccion */
