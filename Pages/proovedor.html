@@ -10,99 +10,26 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="../js/sidebar.js"></script>
     <script src="../js/proovedor.js"></script>
-    <style>
-        #main-content {
-            margin-left: 0;
-        }
-
-        @media (min-width: 768px) {
-            #main-content {
-                margin-left: 16rem;
-            }
-
-            #main-content.sidebar-collapsed {
-                margin-left: 5rem;
-            }
-        }
-
-        /* Animación para modales */
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        roboto: ['Roboto', 'sans-serif'],
+                    },
+                    animation: {
+                        'modalFadeIn': 'modalFadeIn 0.3s ease',
+                    },
+                    keyframes: {
+                        modalFadeIn: {
+                            'from': { opacity: '0', transform: 'translateY(-20px)' },
+                            'to': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
             }
         }
-
-        /* Estilos para la tabla */
-        .table-container {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-
-        .table-header {
-            background-color: #f8fafc;
-        }
-
-        .table-row:hover {
-            background-color: #f8fafc;
-        }
-
-        /* Estilos para los botones */
-        .btn-primary {
-            background-color: #1a4a80;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary:hover {
-            background-color: #12345a;
-            transform: translateY(-1px);
-        }
-
-        .btn-success {
-            background-color: #10b981;
-            transition: all 0.3s ease;
-        }
-
-        .btn-success:hover {
-            background-color: #059669;
-            transform: translateY(-1px);
-        }
-
-        .btn-danger {
-            background-color: #ef4444;
-            transition: all 0.3s ease;
-        }
-
-        .btn-danger:hover {
-            background-color: #dc2626;
-            transform: translateY(-1px);
-        }
-
-        /* Estilos para los inputs */
-        .input-field:focus {
-            box-shadow: 0 0 0 3px rgba(26, 74, 128, 0.2);
-        }
-
-        /* Estilos para los badges de estado */
-        .badge-active {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-inactive {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-
-        /* Efecto de transición suave */
-        .transition-smooth {
-            transition: all 0.3s ease;
-        }
-    </style>
+    </script>
 </head>
 
 <body class="bg-gray-50 flex overflow-hidden h-screen font-roboto">
@@ -110,7 +37,7 @@
     <div w3-include-html="/Pages/pieces-views/sidebar.html"></div>
 
     <!-- Contenido principal -->
-    <div id="main-content" class="flex-1 overflow-auto transition-all duration-300">
+    <div id="main-content" class="flex-1 overflow-auto transition-all duration-300 ml-[250px]">
         <!-- Contenedor principal -->
         <div class="container mx-auto p-6 w-full">
             <!-- Encabezado -->
@@ -124,17 +51,17 @@
                 </button>
             </div>
             <!-- Tarjeta principal -->
-            <div class="bg-white rounded-xl shadow-sm p-6 transition-smooth">
+            <div class="bg-white rounded-xl shadow-sm p-6 transition-all duration-300">
                 <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
                     <div class="relative flex-1 max-w-md">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
                         <input type="text" id="searchInput"
-                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                            class="pl-10 w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="Buscar proveedor...">
                     </div>
-                    <button class="btn-success text-white px-6 py-2 whitespace-nowrap rounded-lg flex items-center"
+                    <button class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 whitespace-nowrap rounded-lg flex items-center transition-all duration-300"
                         onclick="openModal('nuevoProveedorModal')">
                         <i class="fas fa-plus-circle mr-2"></i> Nuevo Proveedor
                     </button>
@@ -145,9 +72,9 @@
                     <div class="flex justify-between items-center bg-gray-100 px-4 py-3 cursor-pointer"
                         onclick="toggleFilters()">
                         <span class="font-medium flex items-center">
-                            <i class="fas fa-filter mr-2 text-[#1a4a80]"></i> Filtros
+                            <i class="fas fa-filter mr-2 text-blue-800"></i> Filtros
                         </span>
-                        <span class="text-[#1a4a80] text-sm flex items-center" id="filterToggleText">
+                        <span class="text-blue-800 text-sm flex items-center" id="filterToggleText">
                             <i class="fas fa-chevron-down mr-1 text-xs"></i> Mostrar
                         </span>
                     </div>
@@ -158,7 +85,7 @@
                                     <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría
                                 </label>
                                 <select id="filterCategoria"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Todas las categorías</option>
                                     <option value="Cerveza">Cerveza</option>
                                     <option value="Gas">Balón de Gas</option>
@@ -171,7 +98,7 @@
                                     <i class="fas fa-info-circle mr-2 text-gray-500"></i>Estado
                                 </label>
                                 <select id="filterEstado"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Todos los estados</option>
                                     <option value="Activo">Activo</option>
                                     <option value="Inactivo">Inactivo</option>
@@ -182,7 +109,7 @@
                                     <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad
                                 </label>
                                 <select id="filterCiudad"
-                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <option value="">Todas las ciudades</option>
                                     <option value="La Paz">La Paz</option>
                                     <option value="Cochabamba">Cochabamba</option>
@@ -201,7 +128,7 @@
                                 <i class="fas fa-broom mr-2"></i>Limpiar
                             </button>
                             <button id="applyFiltersBtn"
-                                class="btn-primary text-white px-4 py-2 rounded-lg flex items-center">
+                                class="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded-lg flex items-center transition-all duration-300">
                                 <i class="fas fa-check mr-2"></i>Aplicar
                             </button>
                         </div>
@@ -209,32 +136,26 @@
                 </div>
 
                 <!-- Tabla de proveedores -->
-                <div class="overflow-x-auto rounded-lg table-container">
+                <div class="overflow-x-auto rounded-lg shadow-sm">
                     <table class="w-full min-w-full divide-y divide-gray-200">
-                        <thead class="table-header">
+                        <thead class="bg-gray-50">
                             <tr>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-building mr-1"></i> Nombre
                                 </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-tag mr-1"></i> Categoría
                                 </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-id-card mr-1"></i> RUC
                                 </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-user mr-1"></i> Contacto
                                 </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-map-marker-alt mr-1"></i> Correo
                                 </th>
-                                <th
-                                    class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     <i class="fas fa-cog mr-1"></i> Acciones
                                 </th>
                             </tr>
@@ -255,10 +176,10 @@
             <div id="nuevoProveedorModal"
                 class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
                 <div
-                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-modalFadeIn">
                     <div class="flex justify-between items-center border-b px-6 py-4">
                         <h2 class="text-xl font-semibold flex items-center">
-                            <i class="fas fa-truck mr-2 text-[#1a4a80]"></i> Registrar Nuevo Proveedor
+                            <i class="fas fa-truck mr-2 text-blue-800"></i> Registrar Nuevo Proveedor
                         </h2>
                         <button onclick="closeModal('nuevoProveedorModal')"
                             class="text-gray-500 hover:text-gray-700 transition-colors">
@@ -273,7 +194,7 @@
                                         <i class="fas fa-building mr-2 text-gray-500"></i>Nombre del Proveedor *
                                     </label>
                                     <input type="text" id="nombreProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Nombre completo" required>
                                     <div id="errorNombre" class="text-red-500 text-sm mt-1"></div>
                                 </div>
@@ -282,7 +203,7 @@
                                         <i class="fas fa-id-card mr-2 text-gray-500"></i>RUC / Documento *
                                     </label>
                                     <input type="text" id="rucProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="RUC o documento fiscal" required>
                                     <div id="errorRuc" class="text-red-500 text-sm mt-1"></div>
                                 </div>
@@ -291,7 +212,7 @@
                                         <i class="fas fa-phone mr-2 text-gray-500"></i>Teléfono Principal *
                                     </label>
                                     <input type="text" id="telefonoProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Número de teléfono" required>
                                     <div id="errorTelefono" class="text-red-500 text-sm mt-1"></div>
                                 </div>
@@ -300,7 +221,7 @@
                                         <i class="fas fa-envelope mr-2 text-gray-500"></i>Correo Electrónico
                                     </label>
                                     <input type="email" id="emailProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Correo electrónico">
                                     <div id="errorEmail" class="text-red-500 text-sm mt-1"></div>
                                 </div>
@@ -309,7 +230,7 @@
                                         <i class="fas fa-map-marked-alt mr-2 text-gray-500"></i>Dirección *
                                     </label>
                                     <input type="text" id="direccionProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Dirección completa" required>
                                     <div id="errorDireccion" class="text-red-500 text-sm mt-1"></div>
                                 </div>
@@ -318,7 +239,7 @@
                                         <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad *
                                     </label>
                                     <select id="ciudadProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                         <option value="">Seleccionar ciudad</option>
                                         <option value="La Paz">La Paz</option>
@@ -337,7 +258,7 @@
                                         <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría *
                                     </label>
                                     <select id="categoriaProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                         <option value="">Seleccionar categoría</option>
                                         <option value="Cerveza">Cerveza</option>
@@ -353,7 +274,7 @@
                                         <i class="fas fa-user-tie mr-2 text-gray-500"></i>Persona de Contacto
                                     </label>
                                     <input type="text" id="contactoProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         placeholder="Nombre del contacto">
                                 </div>
                                 <div class="md:col-span-2">
@@ -361,7 +282,7 @@
                                         <i class="fas fa-sticky-note mr-2 text-gray-500"></i>Observaciones
                                     </label>
                                     <textarea id="observacionesProveedor"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         rows="3" placeholder="Notas adicionales sobre el proveedor"></textarea>
                                 </div>
                             </div>
@@ -371,7 +292,7 @@
                                 class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-times mr-2"></i> Cancelar
                             </button>
-                            <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                            <button type="submit" class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-lg flex items-center transition-all duration-300">
                                 <i class="fas fa-save mr-2"></i> Guardar Proveedor
                             </button>
                         </div>
@@ -383,10 +304,10 @@
             <div id="editProveedorModal"
                 class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
                 <div
-                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-modalFadeIn">
                     <div class="flex justify-between items-center border-b px-6 py-4">
                         <h2 class="text-xl font-semibold flex items-center">
-                            <i class="fas fa-edit mr-2 text-[#1a4a80]"></i> Editar Proveedor
+                            <i class="fas fa-edit mr-2 text-blue-800"></i> Editar Proveedor
                         </h2>
                         <button onclick="closeModal('editProveedorModal')"
                             class="text-gray-500 hover:text-gray-700 transition-colors">
@@ -402,7 +323,7 @@
                                         <i class="fas fa-building mr-2 text-gray-500"></i>Nombre del Proveedor *
                                     </label>
                                     <input type="text" id="editNombre"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
                                 <div>
@@ -410,7 +331,7 @@
                                         <i class="fas fa-tags mr-2 text-gray-500"></i>Categoría *
                                     </label>
                                     <select id="editCategoria"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                         <option value="Cerveza">Cerveza</option>
                                         <option value="Gas">Balón de Gas</option>
@@ -424,7 +345,7 @@
                                         <i class="fas fa-id-card mr-2 text-gray-500"></i>RUC *
                                     </label>
                                     <input type="text" id="editRuc"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
                                 <div>
@@ -432,7 +353,7 @@
                                         <i class="fas fa-phone mr-2 text-gray-500"></i>Teléfono *
                                     </label>
                                     <input type="text" id="editTelefono"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
                                 <div>
@@ -440,14 +361,14 @@
                                         <i class="fas fa-envelope mr-2 text-gray-500"></i>Email
                                     </label>
                                     <input type="email" id="editEmail"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
                                         <i class="fas fa-map-marked-alt mr-2 text-gray-500"></i>Dirección *
                                     </label>
                                     <input type="text" id="editDireccion"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                 </div>
                                 <div>
@@ -455,7 +376,7 @@
                                         <i class="fas fa-city mr-2 text-gray-500"></i>Ciudad *
                                     </label>
                                     <select id="editCiudad"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                         <option value="La Paz">La Paz</option>
                                         <option value="Cochabamba">Cochabamba</option>
@@ -472,14 +393,14 @@
                                         <i class="fas fa-user-tie mr-2 text-gray-500"></i>Persona de Contacto
                                     </label>
                                     <input type="text" id="editContacto"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field">
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 </div>
                                 <div>
                                     <label class="block mb-2 text-sm font-medium text-gray-700 flex items-center">
                                         <i class="fas fa-info-circle mr-2 text-gray-500"></i>Estado *
                                     </label>
                                     <select id="editEstado"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         required>
                                         <option value="Activo">Activo</option>
                                         <option value="Inactivo">Inactivo</option>
@@ -490,7 +411,7 @@
                                         <i class="fas fa-sticky-note mr-2 text-gray-500"></i>Observaciones
                                     </label>
                                     <textarea id="editObservaciones"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 input-field"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                         rows="3"></textarea>
                                 </div>
                             </div>
@@ -500,7 +421,7 @@
                                 class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
                                 <i class="fas fa-times mr-2"></i> Cancelar
                             </button>
-                            <button type="submit" class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                            <button type="submit" class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-lg flex items-center transition-all duration-300">
                                 <i class="fas fa-save mr-2"></i> Guardar Cambios
                             </button>
                         </div>
@@ -512,10 +433,10 @@
             <div id="detailsProveedorModal"
                 class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1000] overflow-y-auto p-5 flex items-center justify-center">
                 <div
-                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-[modalFadeIn_0.3s_ease]">
+                    class="bg-white rounded-xl shadow-xl max-w-[800px] w-[90%] max-h-[90vh] overflow-y-auto animate-modalFadeIn">
                     <div class="flex justify-between items-center border-b px-6 py-4">
                         <h2 class="text-xl font-semibold flex items-center">
-                            <i class="fas fa-info-circle mr-2 text-[#1a4a80]"></i> Detalles del Proveedor
+                            <i class="fas fa-info-circle mr-2 text-blue-800"></i> Detalles del Proveedor
                         </h2>
                         <button onclick="closeModal('detailsProveedorModal')"
                             class="text-gray-500 hover:text-gray-700 transition-colors">
@@ -591,7 +512,7 @@
                                 <h3 class="font-medium text-gray-700 mb-3 flex items-center">
                                     <i class="fas fa-sticky-note mr-2 text-gray-500"></i> Observaciones
                                 </h3>
-                                <div class="b   g-white p-3 rounded border border-gray-200">
+                                <div class="bg-white p-3 rounded border border-gray-200">
                                     <p id="detailsObservaciones" class="text-gray-800"></p>
                                 </div>
                             </div>
@@ -599,7 +520,7 @@
                     </div>
                     <div class="flex justify-end px-6 py-4 border-t">
                         <button onclick="closeModal('detailsProveedorModal')"
-                            class="btn-primary text-white px-6 py-2 rounded-lg flex items-center">
+                            class="bg-blue-800 hover:bg-blue-900 text-white px-6 py-2 rounded-lg flex items-center transition-all duration-300">
                             <i class="fas fa-times mr-2"></i> Cerrar
                         </button>
                     </div>
@@ -610,5 +531,4 @@
 
     <script>includeHTML();</script>
 </body>
-
 </html>
