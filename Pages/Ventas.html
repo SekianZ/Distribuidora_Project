@@ -189,14 +189,17 @@
                                 <!-- Cliente -->
                                 <label class="text-sm font-medium text-gray-700">Cliente</label>
                                 <div class="flex items-center space-x-4">
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="cliente-frecuente" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                        <label for="cliente-frecuente" class="ml-2 text-gray-700">Frecuente</label>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <input type="checkbox" id="cliente-nuevo" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                        <label for="cliente-nuevo" class="ml-2 text-gray-700">Nuevo</label>
-                                    </div>
+                                    <!-- Cliente frecuente -->
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" id="cliente-frecuente" name="tipo-cliente" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                        <span class="ml-2 text-gray-700">Frecuente</span>
+                                    </label>
+                                    
+                                    <!-- Cliente nuevo -->
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="radio" id="cliente-nuevo" name="tipo-cliente" class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                        <span class="ml-2 text-gray-700">Nuevo</span>
+                                    </label>
                                 </div>
                             
                                 <!-- Campos adicionales para cliente frecuente -->

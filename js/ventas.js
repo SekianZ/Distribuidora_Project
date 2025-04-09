@@ -1,81 +1,107 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const token = 123;
+    
+    // Verificar autenticación
+    const token = localStorage.getItem("token");
     if (!token) {
-        alert("No has iniciado sesión");
-        location.href = "../index.html"; // Redirigir a login si no hay usuario guardado
+        Swal.fire({
+            title: "Acceso no autorizado",
+            text: "Debes iniciar sesión para acceder a esta página",
+            icon: "warning"
+        }).then(() => {
+            window.location.href = "../index.html";
+        });
+        return;
     }
 
-    obtenerVentas();
-
-    // Cargar datos al inicio
+    // Inicializar componentes
+    initSelect2();
+    initEventListeners();
     obtenerDatosFormulario();
+    obtenerVentas();
 });
 
+// Variables globales organizadas
+const state = {
+    ventas: [],
+    categorias: [],
+    clientes: [],
+    productos: [],
+    manejoPorCategoria: {},
+    tiposPago: [],
+    editando: false,
+    ventaEditandoId: null
+};
 
-
-function cerrarSesion() {
-    localStorage.removeItem("token"); // Borra el token
-    localStorage.removeItem("nombreUsuario"); // Borra el nombre del usuario
-    location.href = "../index.html"; // Redirigir a login si no hay usuario guardado
+// Inicialización de Select2
+function initSelect2() {
+    $('#select-cliente-frecuente').select2({ width: '100%' });
+    $('#producto').select2({ width: '100%' });
 }
 
-function formatearFecha(fecha) {
-    const fechaFormateada = fecha.split("T")[0]; // Formato: dd/mm/yyyy hh:mm:ss
-    return fechaFormateada.split("-").reverse().join("/"); // Invertir el orden de las fechas
+// Configuración de event listeners
+function initEventListeners() {
+    // Botones y modales
+    document.getElementById('btn-agregar-venta').addEventListener('click', abrirModalNuevaVenta);
+    document.getElementById('btn-regresar').addEventListener('click', () => window.location.href = 'inicio.html');
+    document.getElementById('cerrar-modal').addEventListener('click', () => document.getElementById('modal-venta').classList.add('hidden'));
+    document.getElementById('cerrar-modal-observaciones').addEventListener('click', () => document.getElementById('modal-observaciones').classList.add('hidden'));
+    document.getElementById('cerrar-observaciones').addEventListener('click', () => document.getElementById('modal-observaciones').classList.add('hidden'));
+    document.getElementById('cancelar-venta').addEventListener('click', () => document.getElementById('modal-venta').classList.add('hidden'));
+    
+    // Formulario
+    document.getElementById('precio').addEventListener('input', calcularTotal);
+    document.getElementById('cantidad').addEventListener('input', calcularTotal);
+    document.getElementById('buscador-ventas').addEventListener('input', (e) => buscarVentas(e.target.value));
+    // Radio buttons para tipo de cliente
+    document.getElementById('cliente-nuevo').addEventListener('change', toggleClienteForms);
+    document.getElementById('cliente-frecuente').addEventListener('change', toggleClienteForms);
+    toggleClienteForms();
+    // Selectores
+    document.getElementById('tipo-producto').addEventListener('change', llenarProductos);
+    $('#producto').on('change', manejarCambioProducto);
 }
 
-let categorias = []; 
-let clientes = []; 
-let productos = []; 
-let manejoPorCategoria = {};
-let tiposPago = {}; 
+// Funciones de utilidad
+const formatCurrency = (value) => `S/ ${parseFloat(value).toFixed(2)}`;
+const formatDate = (dateString) => new Date(dateString).toLocaleDateString('es-PE');
 
-// Obtener datos desde el backend
+// Manejo de datos del formulario
 async function obtenerDatosFormulario() {
     try {
-        //Obtener clientes
-        const resClientes = await fetch(`../Backend/controllers/clienteController.php`);
-        const dataClientes = await resClientes.json();
-        clientes = dataClientes || [];
-        console.log(clientes);
+        const endpoints = [
+            '../Backend/controllers/clienteController.php',
+            '../Backend/controllers/tipoPagoController.php',
+            '../Backend/controllers/categoriaController.php',
+            '../Backend/controllers/productoController.php',
+            '../Backend/controllers/manejoCategoriaController.php'
+        ];
 
-        // Obtener tipos de pago
-        const resTiposPago = await fetch(`../Backend/controllers/tipoPagoController.php`);
-        const dataTiposPago = await resTiposPago.json();
-        tiposPago = dataTiposPago || [];
+        const responses = await Promise.all(endpoints.map(url => fetch(url)));
+        const data = await Promise.all(responses.map(res => res.json()));
+
+        // Asignar datos al estado
+        state.clientes = data[0] || [];
+        state.tiposPago = data[1] || [];
+        state.categorias = data[2] || [];
+        state.productos = data[3] || [];
+        state.manejoPorCategoria = agruparManejoPorCategoria(data[4] || []);
+
+        // Llenar selects
         llenarTiposPago();
-
-        // Obtener categorías
-        const resCategorias = await fetch(`../Backend/controllers/categoriaController.php`);
-        const dataCategorias = await resCategorias.json();
-        categorias = dataCategorias || [];
-
-        // Obtener productos
-        const resProductos = await fetch(`../Backend/controllers/productoController.php`);
-        const dataProductos = await resProductos.json();
-        productos = dataProductos || [];
-
-        // Obtener manejo de productos
-        const resManejo = await fetch(`../Backend/controllers/manejoCategoriaController.php`);
-        const dataManejo = await resManejo.json();
-        manejoPorCategoria = agruparManejoPorCategoria(dataManejo || []);
-
-        // Llenar categorías solo después de tener los datos de productos
         llenarCategorias();
-
-        console.log("Datos cargados:", { categorias, productos, manejoPorCategoria });
+        llenarClientes();
 
     } catch (error) {
         console.error("Error al obtener datos:", error);
+        mostrarNotificacion("Error al cargar datos del formulario", "error");
     }
 }
 
 function llenarClientes() {
-    console.log(clientes,);
     const selectCliente = document.getElementById("select-cliente-frecuente");
     selectCliente.innerHTML = '<option value="">Seleccione un cliente</option>';
 
-    clientes.forEach((cliente) => {
+    state.clientes.forEach(cliente => {
         const option = document.createElement("option");
         option.value = cliente.idCliente;
         option.textContent = cliente.nombreCliente;
@@ -87,7 +113,7 @@ function llenarTiposPago() {
     const selectTipoPago = document.getElementById("pago");
     selectTipoPago.innerHTML = '<option value="">Seleccione un tipo de pago</option>';
 
-    tiposPago.forEach((tipoPago) => {
+    state.tiposPago.forEach(tipoPago => {
         const option = document.createElement("option");
         option.value = tipoPago.idTipoPago;
         option.textContent = tipoPago.metodoPago;
@@ -95,46 +121,31 @@ function llenarTiposPago() {
     });
 }
 
-// Llenar el select de categorías
 function llenarCategorias() {
     const selectCategoria = document.getElementById("tipo-producto");
     selectCategoria.innerHTML = '<option value="">Seleccione una categoría</option>';
 
-    categorias.forEach((categoria) => {
+    state.categorias.forEach(categoria => {
         const option = document.createElement("option");
         option.value = categoria.idCategoria;
         option.textContent = categoria.nombreCategoria;
         selectCategoria.appendChild(option);
     });
-
-    // Agregar evento de cambio de categoría
-    selectCategoria.addEventListener("change", llenarProductos);
-    
-    // Llamar a llenarProductos() al cargar las categorías para verificar si ya hay una seleccionada
-    llenarProductos();
 }
 
-// Llenar el select de productos según la categoría seleccionada
 function llenarProductos() {
     const selectProducto = document.getElementById("producto");
     const categoriaSeleccionada = document.getElementById("tipo-producto").value;
 
-    // Reiniciar el select de productos
     selectProducto.innerHTML = '<option value="">Seleccionar producto</option>';
+    selectProducto.disabled = !categoriaSeleccionada;
 
-    // Desactivar el select de productos si no hay una categoría seleccionada
-    if (!categoriaSeleccionada) {
-        selectProducto.disabled = true;  // Desactiva el select de productos
-    } else {
-        selectProducto.disabled = false; // Habilita el select de productos si hay una categoría seleccionada
+    if (categoriaSeleccionada) {
+        const productosFiltrados = state.productos.filter(
+            producto => parseInt(producto.idCategoria, 10) === parseInt(categoriaSeleccionada, 10)
+        );
 
-        // Convertimos categoriaSeleccionada a número para comparación correcta
-        const categoriaID = parseInt(categoriaSeleccionada, 10);
-
-        // Filtrar los productos según la categoría seleccionada
-        const productosFiltrados = productos.filter(producto => parseInt(producto.idCategoria, 10) === categoriaID);
-
-        productosFiltrados.forEach((producto) => {
+        productosFiltrados.forEach(producto => {
             const option = document.createElement("option");
             option.value = producto.idProducto;
             option.textContent = producto.nombreProducto;
@@ -147,172 +158,100 @@ function llenarProductos() {
     }
 }
 
-
-// Agrupar los manejos por categoría
 function agruparManejoPorCategoria(manejoProductos) {
-    let agrupado = {};
-
-    manejoProductos.forEach((manejo) => {
+    return manejoProductos.reduce((agrupado, manejo) => {
         const idCategoria = manejo.idCategoria;
-
         if (!agrupado[idCategoria]) {
             agrupado[idCategoria] = [];
         }
-
         agrupado[idCategoria].push({
             idManejo: manejo.idManejo,
             descripcion: manejo.descripcion,
         });
-    });
-
-    return agrupado;
+        return agrupado;
+    }, {});
 }
 
-// Inicializamos Select2
-$(document).ready(function() {
-    $('#select-cliente-frecuente').select2({
-        width: '100%' // Se ajusta al 100% del contenedor
-    });
-    $('#producto').select2({
-        width: '100%' // Se ajusta al 100% del contenedor
-    });
+function manejarCambioProducto() {
+    const productoSeleccionado = this.options[this.selectedIndex];
+    const contenedorManejo = document.getElementById("manejoProducto");
+    const opcionesManejo = document.getElementById("opcionesManejo");
+    const precioElemento = document.getElementById("precio");
 
-    // Ahora escuchamos el evento 'change' sobre el select con Select2
-    $('#producto').on('change', function () {
-        const productoSeleccionado = this.options[this.selectedIndex];
-        const contenedorManejo = document.getElementById("manejoProducto");
-        const opcionesManejo = document.getElementById("opcionesManejo");
-        const precioElemento = document.getElementById("precio");
+    opcionesManejo.innerHTML = "";
 
-        // Limpiar contenido previo en manejo
-        opcionesManejo.innerHTML = "";
+    if (!productoSeleccionado.value) {
+        contenedorManejo.style.display = "none";
+        precioElemento.value = "";
+        return;
+    }
 
-        if (productoSeleccionado.value === "") {
-            // Si el valor del producto es el predeterminado, ocultamos el manejo y el precio
-            contenedorManejo.style.display = "none";
-            precioElemento.value = 0; // O puedes poner un valor predeterminado como "Seleccionar un producto"
-        } else {
-            const idCategoria = productoSeleccionado.dataset.idCategoria;
-            const precio = productoSeleccionado.dataset.precio;
+    const idCategoria = productoSeleccionado.dataset.idCategoria;
+    const precio = productoSeleccionado.dataset.precio;
 
-            if (manejoPorCategoria[idCategoria] && manejoPorCategoria[idCategoria].length > 0) {
-                manejoPorCategoria[idCategoria].forEach((manejo) => {
-                    const label = document.createElement("label");
-                    label.className = "flex items-center gap-2 cursor-pointer";
+    if (state.manejoPorCategoria[idCategoria]?.length > 0) {
+        state.manejoPorCategoria[idCategoria].forEach(manejo => {
+            const label = document.createElement("label");
+            label.className = "flex items-center gap-2 cursor-pointer";
 
-                    const input = document.createElement("input");
-                    input.type = "radio";
-                    input.name = "manejoProducto"; // Todos deben compartir el mismo "name" para que solo se pueda seleccionar uno
-                    input.value = manejo.idManejo;
-                    input.className = "cursor-pointer"; // Para mejorar la experiencia visual
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = "manejoProducto";
+            input.value = manejo.idManejo;
+            input.className = "cursor-pointer";
 
-                    label.appendChild(input);
-                    label.appendChild(document.createTextNode(manejo.descripcion));
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(manejo.descripcion));
+            opcionesManejo.appendChild(label);
+        });
 
-                    opcionesManejo.appendChild(label);
-                });
-
-                contenedorManejo.style.display = "block"; // Muestra el contenedor de manejo
-            } else {
-                contenedorManejo.style.display = "none"; // Si no hay manejos, ocultamos el contenedor
-            }
-
-            // Mostrar el precio del producto
-            mostrarPrecioProducto(precio);
-        }
-    });
-});
-
-
-// Ejecutar la carga de datos al iniciar la página
-obtenerDatosFormulario();
-
-
-function mostrarPrecioProducto() {
-    const selectProducto = document.getElementById("producto");
-    const precioUnitario = document.getElementById("precio");
-
-    const productoSeleccionado = selectProducto.options[selectProducto.selectedIndex];
-
-    if (productoSeleccionado.value) {
-        precioUnitario.value = productoSeleccionado.dataset.precio || "0.00";
+        contenedorManejo.style.display = "block";
     } else {
-        precioUnitario.value = ""; // Resetear si no hay producto seleccionado
+        contenedorManejo.style.display = "none";
+    }
+
+    precioElemento.value = precio || "0.00";
+    calcularTotal();
+}
+
+// Funciones para manejo de ventas
+async function obtenerVentas() {
+    try {
+        const res = await fetch(`/Backend/controllers/ventaController.php`);
+        const data = await res.json();
+        
+        state.ventas = data.map(venta => ({
+            idVenta: venta.idVenta,
+            cliente: venta.cliente || "Desconocido",
+            producto: venta.producto || "Producto no especificado",
+            cantidad: parseInt(venta.cantidad) || 0,
+            manejoProducto: venta.manejo || "Sin manejo",
+            precio: isNaN(parseFloat(venta.precio_unitario)) ? 0.0 : parseFloat(venta.precio_unitario),
+            total: isNaN(parseFloat(venta.monto)) ? 0.0 : parseFloat(venta.monto),
+            fecha: venta.fecha || "Fecha no disponible",
+            pago: venta.tipoPago || "Método no especificado",
+            observaciones: venta.observaciones?.replace(/\r?\n/g, "\n") || "Sin observaciones"
+        }));
+
+        renderizarVentas();
+    } catch (error) {
+        console.error("Error al obtener las ventas:", error);
+        mostrarNotificacion("Error al cargar las ventas", "error");
     }
 }
 
-// Datos de ejemplo (simulando una base de datos)
-let ventas = [];
-
-function obtenerVentas() {
-    fetch(`/Backend/controllers/ventaController.php`)
-        .then((res) => res.json())
-        .then((data) => {
-            // Formatear los datos para que coincidan con la estructura deseada
-            ventas = data.map((ventas) => ({
-                idVenta: ventas.idVenta, // Mantener el ID sin cambios
-                cliente: ventas.cliente || "Desconocido", // Evitar undefined
-                producto: ventas.producto || "Producto no especificado",
-                cantidad: parseInt(ventas.cantidad) || 0, // Asegurar número válido
-                manejoProducto: ventas.manejo || "Sin manejo", // Asegurar consistencia en el campo de manejo
-                precio: isNaN(parseFloat(ventas.precio_unitario))
-                    ? 0.0
-                    : parseFloat(ventas.precio_unitario),
-                total: isNaN(parseFloat(ventas.monto)) ? 0.0 : parseFloat(ventas.monto),
-                fecha: ventas.fecha || "Fecha no disponible", // Asegurar formato de fecha válido   
-                pago: ventas.tipoPago || "Método no especificado", // Asegurar consistencia en el campo de pago
-                observaciones: ventas.observaciones
-                    ? ventas.observaciones.replace(/\r?\n/g, "\n")
-                    : "Sin observaciones",
-            }));
-
-
-
-            // Llamar a renderizarventas después de obtener los datos
-            renderizarVentas();
-        })
-        .catch((error) => console.error("Error al obtener las ventas:", error));
-}
-
-
-
-// Variables globales
-let editando = false;
-let ventaEditandoId = null;
-
-// DOM Elements
-const tablaVentasBody = document.getElementById('tabla-ventas-body');
-const modalVenta = document.getElementById('modal-venta');
-const modalObservaciones = document.getElementById('modal-observaciones');
-const textoObservaciones = document.getElementById('texto-observaciones');
-const formVenta = document.getElementById('form-venta');
-const btnAgregarVenta = document.getElementById('btn-agregar-venta');
-const btnRegresar = document.getElementById('btn-regresar');
-const btnCerrarModal = document.getElementById('cerrar-modal');
-const btnCerrarModalObs = document.getElementById('cerrar-modal-observaciones');
-const btnCerrarObs = document.getElementById('cerrar-observaciones');
-const btnCancelar = document.getElementById('cancelar-venta');
-const inputPrecio = document.getElementById('precio');
-const inputCantidad = document.getElementById('cantidad');
-const totalVenta = document.getElementById('total-venta');
-const buscadorVentas = document.getElementById('buscador-ventas');
-
-// Funciones de utilidad
-const formatCurrency = (value) => `S/ ${value.toFixed(2)}`;
-const formatDate = (dateString) => new Date(dateString).toLocaleDateString('es-PE');
-
-// Mostrar ventas en la tabla
-function renderizarVentas(ventasMostrar = ventas) {
+function renderizarVentas(ventasMostrar = state.ventas) {
+    const tablaVentasBody = document.getElementById('tabla-ventas-body');
     tablaVentasBody.innerHTML = '';
 
     if (ventasMostrar.length === 0) {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td colspan="7" class="px-6 py-4 text-center text-gray-500">
-                No se encontraron ventas
-            </td>
+        tablaVentasBody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+                    No se encontraron ventas
+                </td>
+            </tr>
         `;
-        tablaVentasBody.appendChild(fila);
         return;
     }
 
@@ -350,10 +289,9 @@ function renderizarVentas(ventasMostrar = ventas) {
     });
 }
 
-// Función para buscar ventas
 function buscarVentas(termino) {
     termino = termino.toLowerCase();
-    const ventasFiltradas = ventas.filter(venta => {
+    const ventasFiltradas = state.ventas.filter(venta => {
         return (
             venta.cliente.toLowerCase().includes(termino) ||
             venta.producto.toLowerCase().includes(termino) ||
@@ -365,154 +303,168 @@ function buscarVentas(termino) {
     renderizarVentas(ventasFiltradas);
 }
 
-// Ver observaciones
-window.verObservaciones = function (id) {
-    const venta = ventas.find(v => v.idVenta === id);
-    if (venta) {
-        textoObservaciones.textContent = venta.observaciones || "No hay observaciones registradas";
-        modalObservaciones.classList.remove('hidden');
-    }else{
-        console.log("No se encontró la venta con el id: "+id);
-    }
-}
-
-// Calcular total automáticamente
 function calcularTotal() {
-    const cantidad = parseFloat(inputCantidad.value) || 0;
-    const precio = parseFloat(inputPrecio.value) || 0;
-    const total = cantidad * precio;
-    totalVenta.textContent = total.toFixed(2);
+    const cantidad = parseFloat(document.getElementById('cantidad').value) || 0;
+    const precio = parseFloat(document.getElementById('precio').value) || 0;
+    document.getElementById('total-venta').textContent = (cantidad * precio).toFixed(2);
 }
 
-// Abrir modal para nueva venta
+// Funciones para el modal de venta
 function abrirModalNuevaVenta() {
-    editando = false;
-    ventaEditandoId = null;
-    formVenta.reset();
-    totalVenta.textContent = '0.00';
+    state.editando = false;
+    state.ventaEditandoId = null;
+    
+    // Resetear completamente el formulario
+    const form = document.getElementById('form-venta');
+    form.reset();
+    
+    // Resetear elementos específicos
+    document.getElementById('total-venta').textContent = '0.00';
     document.getElementById('fecha').valueAsDate = new Date();
     document.getElementById('titulo-modal-venta').textContent = 'Registrar Nueva Venta';
-    modalVenta.classList.remove('hidden');
+    
+    // Resetear selects y radio buttons
+    $('#select-cliente-frecuente').val('').trigger('change');
+    $('#producto').val('').trigger('change');
+    
+    // Resetear tipo de cliente
+    document.getElementById('cliente-frecuente').checked = true;
+    document.getElementById('cliente-nuevo').checked = false;
+    
+    // Asegurarse de que los campos de cliente nuevo estén habilitados
+    document.getElementById('nombre-cliente').disabled = false;
+    document.getElementById('telefono-cliente').disabled = false;
+    
+    // Remover botón de cancelar si existe
+    const cancelarBtn = document.getElementById('Cancelar-cliente');
+    if (cancelarBtn) cancelarBtn.remove();
+    
+    // Restablecer botón guardar cliente
+    const btnCliente = document.getElementById('guardar-cliente');
+    if (btnCliente) {
+        btnCliente.textContent = 'Guardar';
+        btnCliente.className = 'px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg';
+        btnCliente.disabled = false;
+    }
+    
+    toggleClienteForms();
+    
+    // Asegurarse de que el modal esté visible
+    document.getElementById('modal-venta').classList.remove('hidden');
 }
 
 async function obtenerDatosVenta(idVenta) {
     try {
         const res = await fetch(`/Backend/controllers/ventaController.php?idVenta=${idVenta}`);
         const data = await res.json();
-        console.log("Datos de la venta enviados:", data);
-        if (data.success) {
-            return data.ventas; // Retornar la venta obtenida
-        } else {
-            alert("Error: " + (data.message || "No se pudo obtener la venta"));
-            return null; // Indicar que hubo un error
+        
+        if (!data.success || !data.ventas?.length) {
+            throw new Error(data.message || "No se pudo obtener la venta");
         }
+        
+        return data.ventas[0];
     } catch (error) {
         console.error("Error al obtener la venta:", error);
-        return null; // Indicar que hubo un error
+        mostrarNotificacion("Error al cargar los datos de la venta", "error");
+        return null;
     }
 }
 
-// Editar venta
-window.editarVenta = async function (id) {
+window.editarVenta = async function(id) {
     const venta = await obtenerDatosVenta(id);
+    if (!venta) return;
 
-    console.log("venta", venta);
-    editando = true;
-    ventaEditandoId = id;
+    state.editando = true;
+    state.ventaEditandoId = id;
 
-    document.getElementById("cliente-nuevo").checked = false;
-    document.getElementById("cliente-nuevo").disabled = true;
+    // Configurar tipo de cliente basado en los datos de la venta
+    if (venta.esClienteNuevo) { // Asume que tu API devuelve esta propiedad
+        document.getElementById('cliente-nuevo').checked = true;
+        document.getElementById('nombre-cliente').value = venta.nombreCliente;
+        document.getElementById('telefono-cliente').value = venta.telefonoCliente;
+    } else {
+        document.getElementById('cliente-frecuente').checked = true;
+        $('#select-cliente-frecuente').val(venta.idCliente).trigger('change');
+    }
+    toggleClienteForms();
 
-    var checkbox = document.getElementById("cliente-frecuente");
-    checkbox.checked = true;
-    var event = new Event('change');
-    checkbox.dispatchEvent(event);
 
+    // Llenar datos del cliente
     const clienteSelect = document.getElementById("select-cliente-frecuente");
-    clienteSelect.value = venta[0]?.Cliente || "";
+    clienteSelect.value = venta.Cliente || "";
+    $(clienteSelect).trigger('change');
 
-    // Selecciona el elemento
-    // Selecciona el <select> con el ID "tipo-producto"
+    // Seleccionar tipo de producto y producto
     const productoTipoSelect = document.getElementById("tipo-producto");
-    console.log("Venta: ",venta);
-    productoTipoSelect.value = venta[0]?.TipoProducto || "";
-    console.log("Valor del producto tipo: ", productoTipoSelect.value);
+    productoTipoSelect.value = venta.TipoProducto || "";
+    productoTipoSelect.dispatchEvent(new Event('change'));
 
+    // Esperar a que se carguen los productos antes de seleccionar
+    setTimeout(() => {
+        const productoSelect = document.getElementById("producto");
+        productoSelect.value = venta.Producto || "";
+        $(productoSelect).trigger('change');
 
-    // Dispara el evento "change"
-    var event = new Event('change');
-    productoTipoSelect.dispatchEvent(event);
-
-
-    // Habilitar el select de producto si es necesario
-    const productoSelect = document.getElementById("producto");
-    productoSelect.disabled = false;
-    productoSelect.value = venta[0]?.Producto || "";
-    productoSelect.dispatchEvent(new Event("change")); // Simular cambio
-
-    // Extraer solo la fecha en formato YYYY-MM-DD
-    const fechaDB = venta[0]?.Fecha?.split(" ")[0] || "";
-    document.getElementById("fecha").value = fechaDB;
+        // Seleccionar manejo de producto si existe
+        if (venta.Manejo) {
+            const radioSeleccionado = document.querySelector(`input[name="manejoProducto"][value="${venta.Manejo}"]`);
+            if (radioSeleccionado) radioSeleccionado.checked = true;
+        }
+    }, 300);
 
     // Llenar el resto de los campos
-    document.getElementById("cantidad").value = venta[0]?.Cantidad || "";
-    document.getElementById("precio").value = venta[0]?.Precio_Unitario || "";
-    document.getElementById("pago").value = venta[0]?.Tipo_Pago || "";
-    document.getElementById("observaciones").value = venta[0]?.Observaciones || "";
+    document.getElementById("fecha").value = venta.Fecha?.split(" ")[0] || "";
+    document.getElementById("cantidad").value = venta.Cantidad || "";
+    document.getElementById("precio").value = venta.Precio_Unitario || "";
+    document.getElementById("pago").value = venta.Tipo_Pago || "";
+    document.getElementById("observaciones").value = venta.Observaciones || "";
     document.getElementById("total-venta").textContent = 
-        parseFloat(venta[0]?.Cantidad * venta[0]?.Precio_Unitario || 0).toFixed(2);
+        parseFloat(venta.Cantidad || 0) * (parseFloat(venta.Precio_Unitario || 0)).toFixed(2)
 
-    // Seleccionar el radio button correspondiente en opcionesManejo
-    const valorManejo = venta[0]?.Manejo || "";
-    if (valorManejo) {
-        const radioSeleccionado = document.querySelector(`input[name="manejoProducto"][value="${valorManejo}"]`);
-        if (radioSeleccionado) {
-            radioSeleccionado.checked = true; // Marcar el radio button
-        }
-    }
-
-    // Mostrar el modal de edición
     document.getElementById("titulo-modal-venta").textContent = "Editar venta";
-    modalVenta.classList.remove("hidden");
+    document.getElementById("modal-venta").classList.remove("hidden");
 };
 
-function eliminarventayStock(id) {
-    fetch(`/Backend/controllers/ventaController.php?action=eliminarConStock&id=${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                mostrarNotificacion("Stock actualizado correctamente y venta eliminada", "success");
-                obtenerVentas();
-                renderizarVentas();
-            } else {
-                mostrarNotificacion("Error al actualizar el stock, venta no eliminada", "error");
-            }
-        })
-        .catch(error => console.error("Error:", error));
+// Funciones para eliminar ventas
+async function eliminarVentaConStock(id) {
+    try {
+        const res = await fetch(`/Backend/controllers/ventaController.php?action=eliminarConStock&id=${id}`, {
+            method: "DELETE"
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            mostrarNotificacion("Stock actualizado y venta eliminada", "success");
+            await obtenerVentas();
+        } else {
+            throw new Error(data.message || "Error al eliminar");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        mostrarNotificacion("Error al eliminar la venta", "error");
+    }
 }
 
-function eliminarventaSinStock(id) {
-    fetch(`/Backend/controllers/ventaController.php?action=eliminarSoloventa&id=${id}`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" }
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                mostrarNotificacion("venta eliminada correctamente sin afectar el stock", "success");
-                renderizarVentas();
-            } else {
-                mostrarNotificacion("Error al eliminar la venta", "error");
-            }
-        })
-        .catch(error => console.error("Error:", error));
+async function eliminarVentaSinStock(id) {
+    try {
+        const res = await fetch(`/Backend/controllers/ventaController.php?action=eliminarSoloventa&id=${id}`, {
+            method: "DELETE"
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            mostrarNotificacion("Venta eliminada (sin afectar stock)", "success");
+            await obtenerVentas();
+        } else {
+            throw new Error(data.message || "Error al eliminar");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        mostrarNotificacion("Error al eliminar la venta", "error");
+    }
 }
 
-// Eliminar venta con confirmaciones
-window.eliminarVenta = function (id) {
+window.eliminarVenta = function(id) {
     Swal.fire({
         title: "¿Estás seguro de eliminar esta venta?",
         text: "Esta acción no se puede deshacer",
@@ -533,48 +485,44 @@ window.eliminarVenta = function (id) {
             cancelButtonText: "Cancelar"
         }).then((result) => {
             if (result.isConfirmed) {
-                eliminarventayStock(id);
-            } else if (result.isDenied) {  // ✅ Aquí corregimos la condición
-                eliminarventaSinStock(id);
+                eliminarVentaConStock(id);
+            } else if (result.isDenied) {
+                eliminarVentaSinStock(id);
             }
         });
     });
 };
 
-function verificarDatosIngresados() {
-    if (document.getElementById("fecha").value === "") {
-        alert("Por favor, ingresa una fecha");
-        return false;
-    }
-    if (document.getElementById("cantidad").value === "") {
-        alert("Por favor, ingresa una cantidad");
-        return false;
-    }
-    if (document.getElementById("precio").value === "") {
-        alert("Por favor, ingresa un precio");
-        return false;
-    }
-    if (document.getElementById("pago").value === "") {
-        alert("Por favor, selecciona un tipo de pago");
-        return false;
-    }
-    if (document.getElementById("producto").value === "") {
-        alert("Por favor, selecciona un producto");
-        return false;
+// Funciones para guardar ventas
+function validarFormulario() {
+    const camposRequeridos = [
+        { id: "fecha", mensaje: "Por favor, ingresa una fecha" },
+        { id: "cantidad", mensaje: "Por favor, ingresa una cantidad" },
+        { id: "precio", mensaje: "Por favor, ingresa un precio" },
+        { id: "pago", mensaje: "Por favor, selecciona un tipo de pago" },
+        { id: "producto", mensaje: "Por favor, selecciona un producto" }
+    ];
+
+    for (const campo of camposRequeridos) {
+        const elemento = document.getElementById(campo.id);
+        if (!elemento.value.trim()) {
+            mostrarNotificacion(campo.mensaje, "error");
+            return false;
+        }
     }
 
-    if(document.getElementById("cliente-frecuente").checked === true){
-        if (document.getElementById("select-cliente-frecuente").value === "") {
-            alert("Por favor, selecciona un cliente");
+    if (document.getElementById("cliente-frecuente").checked) {
+        if (!document.getElementById("select-cliente-frecuente").value) {
+            mostrarNotificacion("Por favor, selecciona un cliente", "error");
             return false;
         }
-    }else if(document.getElementById("cliente-nuevo").checked === true){
-        if (document.getElementById("nombre-cliente").value === "") {
-            alert("Por favor, ingresa un nombre de cliente");
+    } else if (document.getElementById("cliente-nuevo").checked) {
+        if (!document.getElementById("nombre-cliente").value.trim()) {
+            mostrarNotificacion("Por favor, ingresa un nombre de cliente", "error");
             return false;
         }
-        if (document.getElementById("telefono-cliente").value === "") {
-            alert("Por favor, ingresa un teléfono");
+        if (!document.getElementById("telefono-cliente").value.trim()) {
+            mostrarNotificacion("Por favor, ingresa un teléfono", "error");
             return false;
         }
     }
@@ -582,214 +530,157 @@ function verificarDatosIngresados() {
     return true;
 }
 
-function agregarCliente() {
-    const nombreCliente = document.getElementById("nombre-cliente");
-    const telefono = document.getElementById("telefono-cliente");
+async function registrarCliente() {
+    const nombreCliente = document.getElementById("nombre-cliente").value.trim();
+    const telefono = document.getElementById("telefono-cliente").value.trim();
 
-    if (!nombreCliente.value.trim()) {
-        alert("Por favor, ingresa un nombre de cliente");
-        return;
+    if (!nombreCliente) {
+        mostrarNotificacion("Por favor, ingresa un nombre de cliente", "error");
+        return null;
     }
 
-    const data2 = {
-        nombreCliente: nombreCliente.value.trim(),
-        telefono: telefono.value.trim()
-    };
-
-    return fetch(`/Backend/controllers/clienteController.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data2)
-    })
-    .then((res) => res.json())
-    .then((data) => {
+    try {
+        const res = await fetch(`/Backend/controllers/clienteController.php`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                nombreCliente,
+                telefono
+            })
+        });
+        const data = await res.json();
+        
         if (data.estado) {
-            alert("Cliente agregado correctamente");
-            return data.idCliente; // Retorna el ID del cliente
+            mostrarNotificacion("Cliente registrado correctamente", "success");
+            return data.idCliente;
         } else {
-            alert("Error: " + (data.mensaje || "No se pudo registrar el cliente"));
-            return null;
+            throw new Error(data.mensaje || "Error al registrar cliente");
         }
-    })
-    .catch((error) => {
+    } catch (error) {
         console.error("Error al registrar el cliente:", error);
+        mostrarNotificacion("Error al registrar el cliente", "error");
         return null;
-    });
-}   
+    }
+}
 
-// Guardar venta (nueva o edición)
 async function guardarVenta(e) {
     e.preventDefault();
 
-    if (!verificarDatosIngresados()) {
-        alert("Por favor, completa todos los campos");
-        return;
-    }
+    if (!validarFormulario()) return;
 
-    let idClienteRepase;
+    let idCliente;
+    
+    try {
+        // Registrar cliente nuevo si es necesario
+        if (document.getElementById("cliente-nuevo").checked) {
+            idCliente = await registrarCliente();
+            if (!idCliente) return;
+        } else {
+            idCliente = document.getElementById("select-cliente-frecuente").value;
+        }
 
-    if (document.getElementById("cliente-nuevo").checked === true) {
-        idClienteRepase = await agregarCliente();  // ✅ Esperamos la respuesta
-        console.log("idClienteRepase", idClienteRepase);
-    } else if (document.getElementById("cliente-frecuente").checked === true) {
-        idClienteRepase = document.getElementById("select-cliente-frecuente").value;
-    }
-
-    const nuevaVenta = {
-        idVenta: ventaEditandoId,
-        fecha: document.getElementById("fecha").value,
-        idCliente: idClienteRepase,
-        productos: [
-            {
+        const nuevaVenta = {
+            idVenta: state.ventaEditandoId,
+            fecha: document.getElementById("fecha").value,
+            idCliente,
+            productos: [{
                 idProducto: document.getElementById("producto").value,
                 cantidad: document.getElementById("cantidad").value || 0,
-            }
-        ],
-        montoVenta: parseFloat(totalVenta.textContent) || 0.0,
-        IdtipoPago: parseInt(document.getElementById("pago").value),
-        idManejoProducto: document.querySelector('input[name="manejoProducto"]:checked')?.value || null,
-        observacionesVenta: document.getElementById("observaciones").value.trim()
-    };
+            }],
+            montoVenta: parseFloat(document.getElementById("total-venta").textContent) || 0.0,
+            IdtipoPago: parseInt(document.getElementById("pago").value),
+            idManejoProducto: document.querySelector('input[name="manejoProducto"]:checked')?.value || null,
+            observacionesVenta: document.getElementById("observaciones").value.trim()
+        };
 
-    if (editando) {
-        actualizarVenta(nuevaVenta);
-        mostrarNotificacion('Venta actualizada correctamente', 'success');
-    } else {
-        agregarVenta(nuevaVenta);
-        mostrarNotificacion('Venta registrada correctamente', 'success');
+        const endpoint = state.editando ? 
+            "/Backend/controllers/ventaController.php" : 
+            "/Backend/controllers/ventaController.php";
+        
+        const method = state.editando ? "PUT" : "POST";
+
+        const res = await fetch(endpoint, {
+            method,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(nuevaVenta)
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            mostrarNotificacion(
+                state.editando ? "Venta actualizada correctamente" : "Venta registrada correctamente", 
+                "success"
+            );
+            document.getElementById("modal-venta").classList.add("hidden");
+            await obtenerVentas();
+        } else {
+            throw new Error(data.message || "Error al guardar la venta");
+        }
+        
+    } catch (error) {
+        console.error("Error al guardar la venta:", error);
+        mostrarNotificacion("Error al guardar la venta", "error");
     }
-
-    renderizarVentas();
-    modalVenta.classList.add('hidden');
+    // Habilitar el botón nuevo después de guardar
+document.getElementById('btn-agregar-venta').disabled = false;
 }
 
+// Funciones para manejo de clientes
+function toggleClienteForms() {
+    const clienteNuevoChecked = document.getElementById('cliente-nuevo').checked;
+    
+    // Mostrar/ocultar formularios
+    document.getElementById('cliente-nuevo-form').classList.toggle('hidden', !clienteNuevoChecked);
+    document.getElementById('guardar-cliente').classList.toggle('hidden', !clienteNuevoChecked);
+    document.getElementById('cliente-frecuente-form').classList.toggle('hidden', clienteNuevoChecked);
 
+    // Siempre habilitar los radio buttons
+    document.getElementById('cliente-nuevo').disabled = false;
+    document.getElementById('cliente-frecuente').disabled = false;
 
-
-function actualizarVenta(newVenta) {
-    fetch(`/Backend/controllers/ventaController.php`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newVenta)
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            console.log("Datos de la venta enviados:", data);
-            if (data.success) {
-                modalVenta.classList.add("hidden");
-                obtenerVentas();
-                renderizarVentas();
-            } else {
-                alert("Error: " + (data.message || "No se pudo actualizar la venta"));
-            }
-        })
-        .catch((error) => console.error("Error al actualizar la venta:", error));
-    return;
+    // Si cambiamos a cliente frecuente, resetear el formulario de nuevo
+    if (!clienteNuevoChecked) {
+        habilitarCamposCliente();
+    }
 }
-
-function agregarVenta(newVenta) {
-    console.log("entro");
-    fetch(`/Backend/controllers/ventaController.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newVenta)
-    })
-        .then((res) => res.json())
-        .then((data) => {
-            console.log("Datos de la venta enviados:", data);
-            if (data.success) {
-                modalVenta.classList.add("hidden");
-                obtenerVentas();
-                renderizarVentas();
-            } else {
-                alert("Error: " + (data.message || "No se pudo registrar la venta"));
-            }
-        })
-        .catch((error) => console.error("Error al registrar la venta:", error));
-    return;
-}
-
-
-
-// Mostrar notificación
-function mostrarNotificacion(mensaje, tipo = 'info') {
-    const tipos = {
-        success: 'bg-green-500',
-        error: 'bg-red-500',
-        info: 'bg-blue-500'
-    };
-
-    const notificacion = document.createElement('div');
-    notificacion.className = `fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg ${tipos[tipo] || tipos.info} animate-modal z-50`;
-    notificacion.textContent = mensaje;
-    document.body.appendChild(notificacion);
-
-    setTimeout(() => {
-        notificacion.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-        setTimeout(() => notificacion.remove(), 300);
-    }, 3000);
-}
-
-// Control del sidebar
-
-// Event Listeners
-btnAgregarVenta.addEventListener('click', abrirModalNuevaVenta);
-btnRegresar.addEventListener('click', () => window.location.href = 'inicio.html');
-btnCerrarModal.addEventListener('click', () => modalVenta.classList.add('hidden'));
-btnCerrarModalObs.addEventListener('click', () => modalObservaciones.classList.add('hidden'));
-btnCerrarObs.addEventListener('click', () => modalObservaciones.classList.add('hidden'));
-btnCancelar.addEventListener('click', () => modalVenta.classList.add('hidden'));
-formVenta.addEventListener('submit', guardarVenta);
-inputPrecio.addEventListener('input', calcularTotal);
-inputCantidad.addEventListener('input', calcularTotal);
-
-// Evento para el buscador
-buscadorVentas.addEventListener('input', (e) => buscarVentas(e.target.value));
-
-// Inicializar
-document.getElementById('fecha').valueAsDate = new Date();
-renderizarVentas();
-
-
 
 function sistemaBotonCliente() {
     const nombreCliente = document.getElementById("nombre-cliente");
     const telefono = document.getElementById("telefono-cliente");
-    const checkboxClientes = document.getElementById("cliente-nuevo");
     const btnCliente = document.getElementById("guardar-cliente");
 
-    if (nombreCliente.value.trim() === "") {
-        alert("Por favor, ingresa un nombre de cliente");
+    if (!nombreCliente.value.trim()) {
+        mostrarNotificacion("Por favor, ingresa un nombre de cliente", "error");
         return;
     }
-    if (telefono.value.trim() === "") {
-        alert("Por favor, ingresa un teléfono");
+    if (!telefono.value.trim()) {
+        mostrarNotificacion("Por favor, ingresa un teléfono", "error");
         return;
     }
 
     // Deshabilitar campos
     nombreCliente.disabled = true;
     telefono.disabled = true;
-    checkboxClientes.disabled = true;
+    document.getElementById('cliente-nuevo').disabled = true;
+    
+    // Cambiar aspecto del botón
     btnCliente.textContent = "Guardado";
     btnCliente.className = "px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
     btnCliente.disabled = true;
-    // Crear botón de cancelar
-    const button = document.createElement("button");
-    button.textContent = "Cancelar";
-    button.id = "Cancelar-cliente";
-    button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
     
-    button.onclick = function() {
-        habilitarCampos();
-    };
-
-    // Agregar el botón de cancelar al DOM
-    btnCliente.parentNode.appendChild(button);
+    // Crear botón de cancelar si no existe
+    if (!document.getElementById("Cancelar-cliente")) {
+        const button = document.createElement("button");
+        button.textContent = "Cancelar";
+        button.id = "Cancelar-cliente";
+        button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
+        button.onclick = habilitarCamposCliente;
+        btnCliente.parentNode.appendChild(button);
+    }
 }
 
-// Función para volver a habilitar los campos
-function habilitarCampos() {
+function habilitarCamposCliente() {
     document.getElementById("nombre-cliente").disabled = false;
     document.getElementById("telefono-cliente").disabled = false;
     document.getElementById("cliente-nuevo").disabled = false;
@@ -799,76 +690,47 @@ function habilitarCampos() {
     btnCliente.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
     btnCliente.disabled = false;
 
-    // Eliminar el botón de cancelar
     const cancelarBtn = document.getElementById("Cancelar-cliente");
-    if (cancelarBtn) {
-        cancelarBtn.remove();
+    if (cancelarBtn) cancelarBtn.remove();
+}
+
+// Funciones para observaciones
+window.verObservaciones = function(id) {
+    const venta = state.ventas.find(v => v.idVenta === id);
+    if (venta) {
+        document.getElementById("texto-observaciones").textContent = 
+            venta.observaciones || "No hay observaciones registradas";
+        document.getElementById("modal-observaciones").classList.remove('hidden');
+    } else {
+        console.error("No se encontró la venta con el id:", id);
+        mostrarNotificacion("No se encontró la venta", "error");
     }
 }
 
-function desabilitarCliente(nombreCliente, telefono) {
-    nombreCliente.classList.remove("disabled");
-    telefono.classList.remove("disabled");
-    document.getElementById("cliente-nuevo").checked = disabled;
-}
+// Función para mostrar notificaciones
+function mostrarNotificacion(mensaje, tipo = 'info') {
+    const tipos = {
+        success: { bg: 'bg-green-500', icon: 'success' },
+        error: { bg: 'bg-red-500', icon: 'error' },
+        info: { bg: 'bg-blue-500', icon: 'info' }
+    };
 
-
-
-
-// Mostrar u ocultar el formulario de cliente nuevo
-document.getElementById('cliente-nuevo').addEventListener('change', function () {
-    const clienteNuevoForm = document.getElementById('cliente-nuevo-form');
-    const botonGuardar = document.getElementById('guardar-cliente');
-    const clienteExistente = document.getElementById('cliente-frecuente'); // Asegúrate de tener este checkbox en tu HTML
-
-    if (this.checked) {
-        clienteNuevoForm.classList.remove('hidden'); // Mostrar los campos adicionales
-        botonGuardar.classList.remove('hidden'); // Mostrar el botón Guardar
-        clienteExistente.disabled = true; // Deshabilitar la otra opción
-    } else {
-        clienteNuevoForm.classList.add('hidden'); // Ocultar los campos adicionales
-        botonGuardar.classList.add('hidden'); // Ocultar el botón Guardar
-        clienteExistente.disabled = false; // Habilitar la otra opción
-    }
-});
-
-document.getElementById('cliente-frecuente').addEventListener('change', function () {
-    const clienteNuevo = document.getElementById('cliente-nuevo');
-
-    if (this.checked) {
-        clienteNuevo.disabled = true; // Deshabilitar la opción de cliente nuevo
-    } else {
-        clienteNuevo.disabled = false; // Habilitar la opción de cliente nuevo
-    }
-});
-
-
-
-
-// Mostrar u ocultar el formulario de cliente frecuente
-document.getElementById('cliente-frecuente').addEventListener('change', function () {
-    const clienteFrecuenteForm = document.getElementById('cliente-frecuente-form');
-    const selectClienteFrecuente = document.getElementById('select-cliente-frecuente');
-
-    if (this.checked) {
-        clienteFrecuenteForm.classList.remove('hidden'); // Mostrar el SelectBox
-        cargarClientesFrecuentes(selectClienteFrecuente); // Cargar opciones dinámicamente
-    } else {
-        clienteFrecuenteForm.classList.add('hidden'); // Ocultar el SelectBox
-        selectClienteFrecuente.innerHTML = '<option value="">Seleccione un cliente</option>'; // Limpiar opciones
-    }
-});
-
-// Función para cargar clientes frecuentes en el SelectBox
-function cargarClientesFrecuentes() {
-    console.log(clientes,);
-    const selectElement = document.getElementById("select-cliente-frecuente");
-    selectElement.innerHTML = '<option value="">Seleccione un cliente</option>';
-
-    clientes.forEach((cliente) => {
-        const option = document.createElement("option");
-        option.value = cliente.idCliente;
-        option.textContent = cliente.nombreCliente;
-        selectElement.appendChild(option);
+    const config = tipos[tipo] || tipos.info;
+    
+    Swal.fire({
+        title: mensaje,
+        icon: config.icon,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+            toast.addEventListener('mouseenter', Swal.stopTimer);
+            toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
     });
 }
+
+// Inicialización final
+document.getElementById('fecha').valueAsDate = new Date();
