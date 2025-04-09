@@ -24,11 +24,11 @@ function formatearFecha(fecha) {
     return fechaFormateada.split("-").reverse().join("/"); // Invertir el orden de las fechas
 }
 
-let categorias = []; 
-let clientes = []; 
-let productos = []; 
+let categorias = [];
+let clientes = [];
+let productos = [];
 let manejoPorCategoria = {};
-let tiposPago = {}; 
+let tiposPago = {};
 
 // Obtener datos desde el backend
 async function obtenerDatosFormulario() {
@@ -109,7 +109,7 @@ function llenarCategorias() {
 
     // Agregar evento de cambio de categoría
     selectCategoria.addEventListener("change", llenarProductos);
-    
+
     // Llamar a llenarProductos() al cargar las categorías para verificar si ya hay una seleccionada
     llenarProductos();
 }
@@ -139,7 +139,7 @@ function llenarProductos() {
             option.value = producto.idProducto;
             option.textContent = producto.nombreProducto;
             option.dataset.idCategoria = producto.idCategoria;
-            option.dataset.precio = producto.precio; 
+            option.dataset.precio = producto.precio;
             selectProducto.appendChild(option);
         });
 
@@ -169,7 +169,7 @@ function agruparManejoPorCategoria(manejoProductos) {
 }
 
 // Inicializamos Select2
-$(document).ready(function() {
+$(document).ready(function () {
     $('#select-cliente-frecuente').select2({
         width: '100%' // Se ajusta al 100% del contenedor
     });
@@ -206,9 +206,11 @@ $(document).ready(function() {
                     input.value = manejo.idManejo;
                     input.className = "cursor-pointer"; // Para mejorar la experiencia visual
 
+                    // Añadir evento para recalcular el total cuando cambie la selección
+                    input.addEventListener("change", calcularTotal);
+
                     label.appendChild(input);
                     label.appendChild(document.createTextNode(manejo.descripcion));
-
                     opcionesManejo.appendChild(label);
                 });
 
@@ -220,6 +222,8 @@ $(document).ready(function() {
             // Mostrar el precio del producto
             mostrarPrecioProducto(precio);
         }
+        // Recalcular el total después de cualquier cambio
+        calcularTotal();
     });
 });
 
@@ -239,6 +243,8 @@ function mostrarPrecioProducto() {
     } else {
         precioUnitario.value = ""; // Resetear si no hay producto seleccionado
     }
+    // Recalcular el total después de actualizar el precio
+    calcularTotal();
 }
 
 // Datos de ejemplo (simulando una base de datos)
@@ -372,8 +378,8 @@ window.verObservaciones = function (id) {
     if (venta) {
         textoObservaciones.textContent = venta.observaciones || "No hay observaciones registradas";
         modalObservaciones.classList.remove('hidden');
-    }else{
-        console.log("No se encontró la venta con el id: "+id);
+    } else {
+        console.log("No se encontró la venta con el id: " + id);
     }
 }
 
@@ -381,7 +387,15 @@ window.verObservaciones = function (id) {
 function calcularTotal() {
     const cantidad = parseFloat(inputCantidad.value) || 0;
     const precio = parseFloat(inputPrecio.value) || 0;
-    const total = cantidad * precio;
+    const manejoSeleccionado = document.querySelector('input[name="manejoProducto"]:checked')?.value;
+
+    let total = cantidad * precio;
+
+    // Sumar 20 soles solo si el manejo es "Compra la caja" (4) o "Compra la garrafa" (5)
+    if (manejoSeleccionado === "4" || manejoSeleccionado === "5") {
+        total += 20 * cantidad; // Recargo de 20 soles por unidad
+    }
+
     totalVenta.textContent = total.toFixed(2);
 }
 
@@ -435,7 +449,7 @@ window.editarVenta = async function (id) {
     // Selecciona el elemento
     // Selecciona el <select> con el ID "tipo-producto"
     const productoTipoSelect = document.getElementById("tipo-producto");
-    console.log("Venta: ",venta);
+    console.log("Venta: ", venta);
     productoTipoSelect.value = venta[0]?.TipoProducto || "";
     console.log("Valor del producto tipo: ", productoTipoSelect.value);
 
@@ -460,7 +474,7 @@ window.editarVenta = async function (id) {
     document.getElementById("precio").value = venta[0]?.Precio_Unitario || "";
     document.getElementById("pago").value = venta[0]?.Tipo_Pago || "";
     document.getElementById("observaciones").value = venta[0]?.Observaciones || "";
-    document.getElementById("total-venta").textContent = 
+    document.getElementById("total-venta").textContent =
         parseFloat(venta[0]?.Cantidad * venta[0]?.Precio_Unitario || 0).toFixed(2);
 
     // Seleccionar el radio button correspondiente en opcionesManejo
@@ -564,12 +578,12 @@ function verificarDatosIngresados() {
         return false;
     }
 
-    if(document.getElementById("cliente-frecuente").checked === true){
+    if (document.getElementById("cliente-frecuente").checked === true) {
         if (document.getElementById("select-cliente-frecuente").value === "") {
             alert("Por favor, selecciona un cliente");
             return false;
         }
-    }else if(document.getElementById("cliente-nuevo").checked === true){
+    } else if (document.getElementById("cliente-nuevo").checked === true) {
         if (document.getElementById("nombre-cliente").value === "") {
             alert("Por favor, ingresa un nombre de cliente");
             return false;
@@ -602,21 +616,21 @@ function agregarCliente() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data2)
     })
-    .then((res) => res.json())
-    .then((data) => {
-        if (data.estado) {
-            alert("Cliente agregado correctamente");
-            return data.idCliente; // Retorna el ID del cliente
-        } else {
-            alert("Error: " + (data.mensaje || "No se pudo registrar el cliente"));
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.estado) {
+                alert("Cliente agregado correctamente");
+                return data.idCliente; // Retorna el ID del cliente
+            } else {
+                alert("Error: " + (data.mensaje || "No se pudo registrar el cliente"));
+                return null;
+            }
+        })
+        .catch((error) => {
+            console.error("Error al registrar el cliente:", error);
             return null;
-        }
-    })
-    .catch((error) => {
-        console.error("Error al registrar el cliente:", error);
-        return null;
-    });
-}   
+        });
+}
 
 // Guardar venta (nueva o edición)
 async function guardarVenta(e) {
@@ -780,8 +794,8 @@ function sistemaBotonCliente() {
     button.textContent = "Cancelar";
     button.id = "Cancelar-cliente";
     button.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
-    
-    button.onclick = function() {
+
+    button.onclick = function () {
         habilitarCampos();
     };
 
@@ -794,7 +808,7 @@ function habilitarCampos() {
     document.getElementById("nombre-cliente").disabled = false;
     document.getElementById("telefono-cliente").disabled = false;
     document.getElementById("cliente-nuevo").disabled = false;
-    
+
     const btnCliente = document.getElementById("guardar-cliente");
     btnCliente.textContent = "Guardar";
     btnCliente.className = "px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg";
