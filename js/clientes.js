@@ -40,6 +40,7 @@ async function cargarClientes() {
             const fila = `
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cliente.nombreCliente}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${cliente.docClientes}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cliente.telefono || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${cliente.correo || '-'}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
@@ -83,9 +84,10 @@ function manejarFormularioCliente() {
     
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         const datosCliente = {
             nombreCliente: document.getElementById('nombreCliente').value,
+            docClientes: document.getElementById('docClientes').value,
             telefono: document.getElementById('telefono').value,
             correo: document.getElementById('correo').value,
             estado: document.getElementById('estado').value
@@ -171,6 +173,7 @@ async function openEditModal(button) {
         // Llenar el formulario con los datos
         document.getElementById('idCliente').value = cliente.idCliente;
         document.getElementById('nombreCliente').value = cliente.nombreCliente;
+        document.getElementById('docClientes').value = cliente.docClientes;
         document.getElementById('telefono').value = cliente.telefono;
         document.getElementById('correo').value = cliente.correo || '';
         document.getElementById('estado').value = cliente.estado;

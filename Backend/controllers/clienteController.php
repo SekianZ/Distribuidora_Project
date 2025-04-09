@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     if (!empty($data->nombreCliente)) {
         $cliente->nombreCliente = trim($data->nombreCliente);
+        $cliente->docClientes = trim($data->docClientes);
         $cliente->telefono = !empty($data->telefono) ? trim($data->telefono) : null;
         $cliente->estado = !empty($data->estado) ? trim($data->estado) : 'activo';
 

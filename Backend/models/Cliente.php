@@ -5,6 +5,7 @@ class Cliente {
 
     public $idCliente;
     public $nombreCliente;
+    public $docClientes;
     public $telefono;
     public $estado;
 
@@ -13,9 +14,10 @@ class Cliente {
     }
 
     public function crearCliente() {
-        $query = "INSERT INTO " . $this->table . " (nombreCliente, telefono, estado) VALUES (:nombreCliente, :telefono, :estado)";
+        $query = "INSERT INTO " . $this->table . " (nombreCliente, docClientes, telefono, estado) VALUES (:nombreCliente, :docClientes, :telefono, :estado)";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":nombreCliente", $this->nombreCliente);
+        $stmt->bindParam(":docClientes", $this->docClientes);
         $stmt->bindParam(":telefono", $this->telefono);
         $stmt->bindParam(":estado", $this->estado);
     
@@ -41,10 +43,11 @@ class Cliente {
     }
 
     public function actualizarCliente() {
-        $query = "UPDATE " . $this->table . " SET nombreCliente = :nombreCliente, telefono = :telefono, estado = :estado WHERE idCliente = :idCliente";
+        $query = "UPDATE " . $this->table . " SET nombreCliente = :nombreCliente, docClientes = :docClientes, telefono = :telefono, estado = :estado WHERE idCliente = :idCliente";
         $stmt = $this->conn->prepare($query);
         $stmt->bindParam(":idCliente", $this->idCliente);
         $stmt->bindParam(":nombreCliente", $this->nombreCliente);
+        $stmt->bindParam(":docClientes", $this->docClientes);
         $stmt->bindParam(":telefono", $this->telefono);
         $stmt->bindParam(":estado", $this->estado);
         return $stmt->execute();
