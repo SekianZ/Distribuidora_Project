@@ -600,4 +600,4 @@ buscadorCompras.addEventListener("input", (e) => buscarCompras(e.target.value));
 document.getElementById("fecha").valueAsDate = new Date(
     new Date().getTime() - new Date().getTimezoneOffset() * 60000
 );
-renderizarCompras();
+
