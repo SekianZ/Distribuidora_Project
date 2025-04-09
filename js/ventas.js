@@ -40,10 +40,10 @@ async function obtenerDatosFormulario() {
         console.log(clientes);
 
         // Obtener tipos de pago
-        const resTiposPago = await fetch(`../Backend/controllers/tipoPagoController.php`);
+        /*const resTiposPago = await fetch(`../Backend/controllers/tipoPagoController.php`);
         const dataTiposPago = await resTiposPago.json();
         tiposPago = dataTiposPago || [];
-        llenarTiposPago();
+        llenarTiposPago()*/;
 
         // Obtener categorías
         const resCategorias = await fetch(`../Backend/controllers/categoriaController.php`);
@@ -84,7 +84,7 @@ function llenarClientes() {
 }
 
 function llenarTiposPago() {
-    const selectTipoPago = document.getElementById("pago");
+    const selectTipoPago = document.querySelector("pago");
     selectTipoPago.innerHTML = '<option value="">Seleccione un tipo de pago</option>';
 
     tiposPago.forEach((tipoPago) => {
@@ -554,10 +554,13 @@ function verificarDatosIngresados() {
         alert("Por favor, ingresa un precio");
         return false;
     }
-    if (document.getElementById("pago").value === "") {
+    // Validar el botón de radio seleccionado para "Tipo de Pago"
+    const tipoPagoSeleccionado = document.querySelector('input[name="pago"]:checked');
+    if (!tipoPagoSeleccionado) {
         alert("Por favor, selecciona un tipo de pago");
         return false;
     }
+
     if (document.getElementById("producto").value === "") {
         alert("Por favor, selecciona un producto");
         return false;
@@ -635,6 +638,13 @@ async function guardarVenta(e) {
         idClienteRepase = document.getElementById("select-cliente-frecuente").value;
     }
 
+    // Obtener el valor del botón de radio seleccionado
+    const tipoPagoSeleccionado = document.querySelector('input[name="pago"]:checked');
+    if (!tipoPagoSeleccionado) {
+        alert("Por favor, selecciona un tipo de pago.");
+        return; // Detener la ejecución si no hay selección
+    }
+
     const nuevaVenta = {
         idVenta: ventaEditandoId,
         fecha: document.getElementById("fecha").value,
@@ -646,7 +656,7 @@ async function guardarVenta(e) {
             }
         ],
         montoVenta: parseFloat(totalVenta.textContent) || 0.0,
-        IdtipoPago: parseInt(document.getElementById("pago").value),
+        IdtipoPago: parseInt(tipoPagoSeleccionado.value),
         idManejoProducto: document.querySelector('input[name="manejoProducto"]:checked')?.value || null,
         observacionesVenta: document.getElementById("observaciones").value.trim()
     };

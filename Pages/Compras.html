@@ -186,13 +186,16 @@
                                 <!--BUTTON RADIO PARA TIPO DE PAGO-->
                                 <div class="flex gap-4">
                                     <label class="flex items-center">
-                                        <input type="radio" name="pago" value="1" class="mr-2" checked>Efectivo
+                                        <input type="radio" name="pago" value="1" class="mr-2" required checked>
+                                        Efectivo
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" name="pago" value="2" class="mr-2">Yape
+                                        <input type="radio" name="pago" value="2" class="mr-2" required>
+                                        Yape
                                     </label>
                                     <label class="flex items-center">
-                                        <input type="radio" name="pago" value="3" class="mr-2">Plin
+                                        <input type="radio" name="pago" value="3" class="mr-2" required>
+                                        Plin
                                     </label>
                                 </div>
                             </div>
@@ -212,7 +215,7 @@
                             <button type="button" id="cancelar-compra" class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition-colors duration-200 shadow-sm">
                                 Cancelar
                             </button>
-                            <button type="button" id="btnRCompra" onclick="registrarCompra()" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
+                            <button type="button" id="btnRCompra" class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg">
                                 Registrar Compra
                             </button>
                         </div>

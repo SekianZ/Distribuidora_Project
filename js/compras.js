@@ -8,6 +8,12 @@ document.addEventListener("DOMContentLoaded", function () {
     obtenerCompras();
     // Llamar a la función para cargar proveedores al inicio
     obtenerProveedoresConProductos();
+
+    // Vincular el botón "Registrar Compra" con la función registrarCompra
+    const btnRegistrarCompra = document.getElementById("btnRCompra");
+    if (btnRegistrarCompra) {
+        btnRegistrarCompra.addEventListener("click", registrarCompra);
+    }
 });
 
 
@@ -54,6 +60,17 @@ function registrarCompra() {
         fechaFinal = fechaHoraActual.toISOString().slice(0, 19).replace("T", " ");
     }
 
+    const tipoPagoSeleccionado = document.querySelector('input[name="pago"]:checked');
+    console.log("Botones de radio:", document.querySelectorAll('input[name="pago"]')); // Verifica si los botones existen
+    console.log("Botón seleccionado:", tipoPagoSeleccionado); // Verifica si hay uno seleccionado
+
+    if (!tipoPagoSeleccionado) {
+        alert("Por favor, selecciona un tipo de pago.");
+        return; // Detener la ejecución si no hay selección
+    }
+
+    const tipoPago = parseInt(tipoPagoSeleccionado.value); // Obtener el valor seleccionado
+
     if (editando && compraEditandoId) {
         const data = {
             idCompra: compraEditandoId, // 🔹 Ahora coincide con el backend
@@ -66,7 +83,7 @@ function registrarCompra() {
                 }
             ],
             monto: parseFloat(totalPagar.textContent) || 0.0,
-            tipoPago: parseInt(document.getElementById("pago").value),
+            tipoPago: tipoPago,
             observaciones: document.getElementById("observaciones").value.trim()
         };
 
@@ -96,7 +113,7 @@ function registrarCompra() {
             idProveedor: document.getElementById("proveedor").value,
             monto: parseFloat(totalPagar.textContent) || 0.0,
             fecha: fechaFinal, // 🔹 Fecha en formato DATETIME
-            tipoPago: parseInt(document.getElementById("pago").value),
+            tipoPago: tipoPago,
             observaciones: document.getElementById("observaciones").value.trim(),
             productos: [
                 {
@@ -411,7 +428,7 @@ window.editarCompra = function (id) {
             // Llenar el resto de los campos
             document.getElementById("cantidad").value = compra.detalles[0]?.cantidad || "";
             document.getElementById("precio").value = compra.detalles[0]?.precio || "";
-            document.getElementById("pago").value = compra.idTipoPago;
+            document.querySelector(`input[name="pago"][value="${compra.idTipoPago}"]`).checked = true;
             document.getElementById("observaciones").value = compra.observaciones || "";
             totalPagar.textContent = parseFloat(compra.monto).toFixed(2);
 
@@ -499,7 +516,7 @@ function guardarCompra(e) {
         monto: parseFloat(document.getElementById("precio").value),
         total: parseFloat(totalPagar.textContent),
         fecha: document.getElementById("fecha").value, // Se mantiene en formato YYYY-MM-DD
-        idTipoPago: document.getElementById("pago").value,
+        idTipoPago: document.querySelector('input[name="pago"]:checked').value,
         observaciones: document.getElementById("observaciones").value,
     };
 
