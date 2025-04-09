@@ -20,28 +20,32 @@ function openEditModal(button) {
     openModal("nuevoClienteModal");
 }
 
-async function confirmDelete(button) {
+async function confirmDelete(button, accion = "eliminar", esInactivo = false) {
     const id = button.getAttribute('data-id');
     const nombre = button.closest('tr').querySelector('td:first-child').textContent;
+    const mensaje = esInactivo 
+        ? `¿Seguro que deseas marcar como inactivo al cliente "${nombre}"?`
+        : `¿Seguro que deseas ${accion} el cliente "${nombre}"?`;
 
-    if (confirm(`¿Seguro que deseas marcar como inactivo al cliente "${nombre}"?`)) {
+    if (confirm(mensaje)) {
         try {
             const resultado = await eliminarCliente(id);
-
+            
             if (resultado.estado) {
-                alert('Cliente marcado como inactivo');
-                cargarClientes(); // Recargar la lista (que solo muestra activos)
-                window.actualizarTodasLasTarjetas();
+                alert(esInactivo 
+                    ? 'Cliente marcado como inactivo' 
+                    : `Cliente ${accion} exitosamente`);
+                cargarClientes();
+
             } else {
                 alert('Error: ' + resultado.mensaje);
             }
         } catch (error) {
-            console.error('Error al eliminar cliente:', error);
+            console.error(`Error al ${accion} cliente:`, error);
             alert('Error al conectar con el servidor');
         }
     }
 }
-
 // Actualizar la función cargarClientes para usar openDetallesModal
 async function cargarClientes() {
     try {
@@ -78,6 +82,7 @@ async function cargarClientes() {
                 </tr>
             `;
             tabla.innerHTML += fila;
+            window.actualizarTodasLasTarjetas();
         });
     } catch (error) {
         console.error('Error al cargar clientes:', error);
@@ -142,7 +147,6 @@ function manejarFormularioCliente() {
                 closeModal('nuevoClienteModal');
                 cargarClientes();
                 resetearModal();
-                window.actualizarTodasLasTarjetas();
             } else {
                 throw new Error(resultado.mensaje || 'Operación fallida');
             }
@@ -182,22 +186,7 @@ async function eliminarCliente(id) {
     }
 }
 
-// Modificar la función confirmDelete
-async function confirmDelete(button) {
-    const id = button.getAttribute('data-id');
 
-    if (confirm("¿Seguro que deseas eliminar este cliente?")) {
-        const resultado = await eliminarCliente(id);
-
-        if (resultado.estado) {
-            alert('Cliente eliminado exitosamente');
-            cargarClientes();
-            window.actualizarTodasLasTarjetas();
-        } else {
-            alert('Error: ' + resultado.mensaje);
-        }
-    }
-}
 
 async function openDetallesModal(button) {
     const id = button.getAttribute('data-id');
@@ -287,5 +276,4 @@ document.addEventListener('DOMContentLoaded', function () {
     cargarClientes();
     manejarFormularioCliente();
     configurarCierreModal();
-    window.actualizarTodasLasTarjetas();
 });

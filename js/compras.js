@@ -89,7 +89,6 @@ function registrarCompra() {
             .catch(error => console.error("Error al actualizar la compra:", error));
 
         modalCompra.classList.add("hidden"); // Cerrar el modal
-        window.actualizarTodasLasTarjetas();
         return;
     } else {
         const data = {
@@ -160,7 +159,6 @@ function obtenerCompras() {
             renderizarCompras();
         })
         .catch((error) => console.error("Error al obtener las compras:", error));
-        window.actualizarTodasLasTarjetas();
 }
 let proveedores = [];
 
@@ -325,8 +323,9 @@ function renderizarCompras(comprasMostrar = compras) {
                     </td>
                 `;
         tablaComprasBody.appendChild(fila);
-        window.actualizarTodasLasTarjetas();
+        
     });
+    window.actualizarTodasLasTarjetas();
 }
 
 // Función para buscar compras
@@ -482,7 +481,6 @@ window.eliminarCompra = function (id) {
             } else if (result.isDenied) {  // ✅ Aquí corregimos la condición
                 eliminarCompraSinStock(id);
             }
-            window.actualizarTodasLasTarjetas();
         });
     });
 };
@@ -530,7 +528,6 @@ function guardarCompra(e) {
                 editando = false;
                 compraEditandoId = null;
 
-                window.actualizarTodasLasTarjetas();
             } else {
                 mostrarNotificacion("Error al guardar la compra", "error");
             }
