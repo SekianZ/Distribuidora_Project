@@ -77,19 +77,19 @@ function registrarCompra() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert("Compra actualizada correctamente");
-                obtenerCompras(); // 🔹 Ahora solo se ejecuta si la actualización fue exitosa
-            } else {
-                alert("Error al actualizar la compra: " + (data.message || "Inténtalo de nuevo"));
-            }
-        })
-        .catch(error => console.error("Error al actualizar la compra:", error));
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Compra actualizada correctamente");
+                    obtenerCompras(); // 🔹 Ahora solo se ejecuta si la actualización fue exitosa
+                } else {
+                    alert("Error al actualizar la compra: " + (data.message || "Inténtalo de nuevo"));
+                }
+            })
+            .catch(error => console.error("Error al actualizar la compra:", error));
 
         modalCompra.classList.add("hidden"); // Cerrar el modal
-
+        window.actualizarTodasLasTarjetas();
         return;
     } else {
         const data = {
@@ -111,18 +111,18 @@ function registrarCompra() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         })
-        .then((res) => res.json())
-        .then((data) => {
-            console.log("Datos de la compra enviados:", data);
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Datos de la compra enviados:", data);
 
-            if (data.success) {
-                alert(data.message); // Compra registrada correctamente
-                obtenerCompras(); // 🔹 Solo se ejecuta si el registro es exitoso
-            } else {
-                alert("Error: " + (data.message || "No se pudo registrar la compra"));
-            }
-        })
-        .catch((error) => console.error("Error al registrar la compra:", error));
+                if (data.success) {
+                    alert(data.message); // Compra registrada correctamente
+                    obtenerCompras(); // 🔹 Solo se ejecuta si el registro es exitoso
+                } else {
+                    alert("Error: " + (data.message || "No se pudo registrar la compra"));
+                }
+            })
+            .catch((error) => console.error("Error al registrar la compra:", error));
 
         modalCompra.classList.add("hidden");
 
@@ -160,6 +160,7 @@ function obtenerCompras() {
             renderizarCompras();
         })
         .catch((error) => console.error("Error al obtener las compras:", error));
+        window.actualizarTodasLasTarjetas();
 }
 let proveedores = [];
 
@@ -240,9 +241,6 @@ function mostrarPrecioProducto() {
         precioUnitario.value = ""; // Resetear si no hay producto seleccionado
     }
 }
-
-
-
 
 // Variables globales
 let editando = false;
@@ -327,6 +325,7 @@ function renderizarCompras(comprasMostrar = compras) {
                     </td>
                 `;
         tablaComprasBody.appendChild(fila);
+        window.actualizarTodasLasTarjetas();
     });
 }
 
@@ -405,7 +404,7 @@ window.editarCompra = function (id) {
             productoSelect.value = compra.detalles[0]?.idProducto || "";
 
             // Extraer solo la fecha en formato YYYY-MM-DD
-            const fechaDB = compra.fecha.split(" ")[0]; 
+            const fechaDB = compra.fecha.split(" ")[0];
             document.getElementById("fecha").value = fechaDB;
 
             // Llenar el resto de los campos
@@ -429,15 +428,15 @@ function eliminarComprayStock(id) {
         method: "DELETE",
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion("Stock actualizado correctamente y compra eliminada", "success");
-        } else {
-            mostrarNotificacion("Error al actualizar el stock, compra no eliminada", "error");
-        }
-    })
-    .catch(error => console.error("Error:", error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion("Stock actualizado correctamente y compra eliminada", "success");
+            } else {
+                mostrarNotificacion("Error al actualizar el stock, compra no eliminada", "error");
+            }
+        })
+        .catch(error => console.error("Error:", error));
 }
 
 function eliminarCompraSinStock(id) {
@@ -445,16 +444,16 @@ function eliminarCompraSinStock(id) {
         method: "DELETE",
         headers: { "Content-Type": "application/json" }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion("Compra eliminada correctamente sin afectar el stock", "success");
-            renderizarVentas();
-        } else {
-            mostrarNotificacion("Error al eliminar la compra", "error");
-        }
-    })
-    .catch(error => console.error("Error:", error));
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion("Compra eliminada correctamente sin afectar el stock", "success");
+                renderizarVentas();
+            } else {
+                mostrarNotificacion("Error al eliminar la compra", "error");
+            }
+        })
+        .catch(error => console.error("Error:", error));
 }
 
 // Eliminar compra con confirmaciones
@@ -483,6 +482,7 @@ window.eliminarCompra = function (id) {
             } else if (result.isDenied) {  // ✅ Aquí corregimos la condición
                 eliminarCompraSinStock(id);
             }
+            window.actualizarTodasLasTarjetas();
         });
     });
 };
@@ -515,28 +515,30 @@ function guardarCompra(e) {
         },
         body: JSON.stringify(nuevaCompra), // Convertimos el objeto a JSON para enviarlo
     })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion(editando ? "Compra actualizada correctamente" : "Compra registrada correctamente", "success");
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion(editando ? "Compra actualizada correctamente" : "Compra registrada correctamente", "success");
 
-            // Recargar la lista de compras después de la operación
-            obtenerTodasLasCompras();
+                // Recargar la lista de compras después de la operación
+                obtenerTodasLasCompras();
 
-            // Cerrar el modal
-            modalCompra.classList.add("hidden");
+                // Cerrar el modal
+                modalCompra.classList.add("hidden");
 
-            // Resetear estado de edición
-            editando = false;
-            compraEditandoId = null;
-        } else {
-            mostrarNotificacion("Error al guardar la compra", "error");
-        }
-    })
-    .catch(error => {
-        console.error("Error al guardar compra:", error);
-        mostrarNotificacion("Ocurrió un error al guardar", "error");
-    });
+                // Resetear estado de edición
+                editando = false;
+                compraEditandoId = null;
+
+                window.actualizarTodasLasTarjetas();
+            } else {
+                mostrarNotificacion("Error al guardar la compra", "error");
+            }
+        })
+        .catch(error => {
+            console.error("Error al guardar compra:", error);
+            mostrarNotificacion("Ocurrió un error al guardar", "error");
+        });
 }
 
 // Mostrar notificación

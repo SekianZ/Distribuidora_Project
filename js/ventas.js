@@ -347,6 +347,7 @@ function renderizarVentas(ventasMostrar = ventas) {
             </td>
         `;
         tablaVentasBody.appendChild(fila);
+        window.actualizarTodasLasTarjetas();
     });
 }
 

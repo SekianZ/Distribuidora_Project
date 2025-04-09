@@ -5,7 +5,7 @@ function openModal(modalId) {
     const modal = document.getElementById(modalId);
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
-    
+
     // Deshabilitar el cierre al hacer clic fuera
     modal.style.pointerEvents = "auto"; // Asegurar que el modal sea clickeable
     modal.querySelector('.modal-content').style.pointerEvents = "auto"; // Asegurar que el contenido sea clickeable
@@ -27,10 +27,11 @@ async function confirmDelete(button) {
     if (confirm(`¿Seguro que deseas marcar como inactivo al cliente "${nombre}"?`)) {
         try {
             const resultado = await eliminarCliente(id);
-            
+
             if (resultado.estado) {
                 alert('Cliente marcado como inactivo');
                 cargarClientes(); // Recargar la lista (que solo muestra activos)
+                window.actualizarTodasLasTarjetas();
             } else {
                 alert('Error: ' + resultado.mensaje);
             }
@@ -93,7 +94,6 @@ async function crearCliente(datosCliente) {
             },
             body: JSON.stringify(datosCliente)
         });
-
         return await response.json();
     } catch (error) {
         console.error('Error al crear cliente:', error);
@@ -105,14 +105,14 @@ async function crearCliente(datosCliente) {
 // Función para manejar el envío del formulario (crear/editar)
 function manejarFormularioCliente() {
     const form = document.getElementById('formCliente');
-    
-    form.addEventListener('submit', async function(e) {
+
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
-        
+
         // Validar campos requeridos
         const nombre = document.getElementById('nombreCliente').value.trim();
         const telefono = document.getElementById('telefono').value.trim();
-        
+
         if (!nombre) {
             alert('El nombre del cliente es obligatorio');
             return;
@@ -124,10 +124,10 @@ function manejarFormularioCliente() {
             telefono: telefono || null, // Si está vacío, se envía como null
             correo: document.getElementById('correo').value.trim() || null
         };
-        
+
         const idCliente = document.getElementById('idCliente').value;
         let resultado;
-        
+
         try {
             if (idCliente) {
                 // Editar cliente existente
@@ -136,12 +136,13 @@ function manejarFormularioCliente() {
                 // Crear nuevo cliente (se asigna estado "Activo" automáticamente en el backend)
                 resultado = await crearCliente(datosCliente);
             }
-            
+
             if (resultado.estado) {
                 alert(idCliente ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente');
                 closeModal('nuevoClienteModal');
                 cargarClientes();
                 resetearModal();
+                window.actualizarTodasLasTarjetas();
             } else {
                 throw new Error(resultado.mensaje || 'Operación fallida');
             }
@@ -161,7 +162,6 @@ async function editarCliente(id, datosCliente) {
             },
             body: JSON.stringify(datosCliente)
         });
-
         return await response.json();
     } catch (error) {
         console.error('Error al editar cliente:', error);
@@ -192,6 +192,7 @@ async function confirmDelete(button) {
         if (resultado.estado) {
             alert('Cliente eliminado exitosamente');
             cargarClientes();
+            window.actualizarTodasLasTarjetas();
         } else {
             alert('Error: ' + resultado.mensaje);
         }
@@ -200,7 +201,7 @@ async function confirmDelete(button) {
 
 async function openDetallesModal(button) {
     const id = button.getAttribute('data-id');
-    
+
     try {
         // Obtener datos del cliente
         const response = await fetch(`../Backend/controllers/clienteController.php?id=${id}`);
@@ -211,10 +212,10 @@ async function openDetallesModal(button) {
         document.getElementById('detalle-nombre').textContent = cliente.nombreCliente;
         document.getElementById('detalle-telefono').textContent = cliente.telefono || '-';
         document.getElementById('detalle-correo').textContent = cliente.correo || '-';
-        
+
 
         // Configurar el botón de editar para que abra el modal de edición
-        document.getElementById('btnEditarDesdeDetalle').onclick = function() {
+        document.getElementById('btnEditarDesdeDetalle').onclick = function () {
             closeModal('detallesClienteModal');
             openEditModal(button);
         };
@@ -256,15 +257,15 @@ async function openEditModal(button) {
 // Función para resetear el modal cuando se cierre
 function configurarCierreModal() {
     const modal = document.getElementById('nuevoClienteModal');
-    
+
     // Solo el botón de cerrar (×) y el botón Cancelar resetearán el modal
-    document.querySelector('#nuevoClienteModal .close').addEventListener('click', function() {
+    document.querySelector('#nuevoClienteModal .close').addEventListener('click', function () {
         resetearModal();
         closeModal('nuevoClienteModal');
     });
-    
+
     // Configurar el botón Cancelar
-    document.querySelector('#nuevoClienteModal .modal-footer button[onclick*="closeModal"]').addEventListener('click', function() {
+    document.querySelector('#nuevoClienteModal .modal-footer button[onclick*="closeModal"]').addEventListener('click', function () {
         resetearModal();
         closeModal('nuevoClienteModal');
     });
@@ -276,14 +277,15 @@ function resetearModal() {
     document.getElementById('idCliente').value = '';
     document.getElementById('modalTitulo').textContent = 'Registrar Nuevo Cliente';
     document.getElementById('btnGuardar').textContent = 'Guardar Cliente';
-    
+
     // Opcional: Resetear clases de validación si las hay
     document.getElementById('nombreCliente').classList.remove('border-red-500');
 }
 
 // Inicialización al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     cargarClientes();
     manejarFormularioCliente();
     configurarCierreModal();
+    window.actualizarTodasLasTarjetas();
 });

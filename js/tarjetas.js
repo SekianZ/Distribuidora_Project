@@ -61,6 +61,13 @@ function actualizarTarjetasClientes() {
     .catch(error => console.error("Error al obtener los clientes:", error));
 }
 
+window.actualizarTodasLasTarjetas = function() {
+    stocksParaTarjetas();
+    actualizarTarjetasClientes();
+    // Agrega aquí otras funciones de actualización si las hay
+}
+
+
 // Llamada a ambas funciones al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     stocksParaTarjetas();
