@@ -196,7 +196,6 @@ function configurarCierreModal() {
         }
     });
     
-    document.querySelector('#nuevoClienteModal .close').addEventListener('click', resetearModal);
 }
 
 function resetearModal() {
